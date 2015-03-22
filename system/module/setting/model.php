@@ -2,8 +2,8 @@
 /**
  * The model file of setting module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan <guanxiying@xirangit.com>
  * @package     setting
  * @version     $Id$
@@ -44,10 +44,11 @@ class settingModel extends model
      * 
      * @param  string      $path     system.common.global.sn or system.common.sn 
      * @param  string      $value 
+     * @param  null|string $lang 
      * @access public
      * @return void
      */
-    public function setItem($path, $value = '')
+    public function setItem($path, $value = '', $lang = null)
     {
         $level   = substr_count($path, '.');
         $section = '';
@@ -61,6 +62,7 @@ class settingModel extends model
         $item->section = $section;
         $item->key     = $key;
         $item->value   = $value;
+        if(!empty($lang)) $item->lang = $lang;
 
         $this->dao->replace(TABLE_CONFIG)->data($item)->exec();
     }
@@ -74,10 +76,11 @@ class settingModel extends model
      *
      * @param  string         $path   like system.mail 
      * @param  array|object   $items  the items array or object, can be mixed by one level or two levels.
+     * @param  null|string    $lang 
      * @access public
      * @return bool
      */
-    public function setItems($path, $items)
+    public function setItems($path, $items, $lang = null)
     {
         foreach($items as $key => $item)
         {
@@ -86,12 +89,12 @@ class settingModel extends model
                 $section = $key;
                 foreach($item as $subKey => $subItem)
                 {
-                    $this->setItem($path . '.' . $section . '.' . $subKey, $subItem);
+                    $this->setItem($path . '.' . $section . '.' . $subKey, $subItem, $lang);
                 }
             }
             else
             {
-                $this->setItem($path . '.' . $key, $item);
+                $this->setItem($path . '.' . $key, $item, $lang);
             }
         }
 

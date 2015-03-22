@@ -2,8 +2,8 @@
 /**
  * The model file of tree module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     tree
  * @version     $Id$
@@ -398,8 +398,11 @@ class treeModel extends model
     {
         $category = fixer::input('post')
             ->join('moderators', ',')
-            ->stripTags('desc', $this->config->allowedTags->admin)
-            ->setDefault('readonly', 0)->get();
+            ->stripTags('desc,link', $this->config->allowedTags->admin)
+            ->setDefault('readonly', 0)
+            ->setIF(!$this->post->isLink, 'link', '')
+            ->get();
+
         $category->alias    = seo::unify($category->alias, '-');
         $category->keywords = seo::unify($category->keywords, ',');
 
@@ -422,13 +425,17 @@ class treeModel extends model
         $category->grade = $parent ? $parent->grade + 1 : 1;
 
         $this->dao->update(TABLE_CATEGORY)
-            ->data($category, $skip = 'uid')
+            ->data($category, $skip = 'uid,isLink')
             ->autoCheck()
-            ->check($this->config->tree->require->edit, 'notempty')
+            ->checkIF(!$this->post->isLink, $this->config->tree->require->edit, 'notempty')
+            ->batchCheckIF($this->post->isLink, $this->config->tree->require->link, 'notempty')
             ->where('id')->eq($categoryID)
             ->exec();
 
         $this->fixPath($category->type);
+
+        $this->loadModel('file')->updateObjectID($this->post->uid, $categoryID, 'category');
+        $this->file->copyFromContent($this->post->content, $categoryID, 'category');
 
         return !dao::isError();
     }
@@ -478,12 +485,13 @@ class treeModel extends model
         {
             $alias = $this->post->alias[$key];
             $alias = seo::unify($alias, '-');
+            $order = $i * 10;
             if(empty($categoryName)) continue;
 
             /* First, save the child without path field. */
             $category->name  = $categoryName;
             $category->alias = $alias;
-            $category->order = $this->post->maxOrder + $i * 10;
+            $category->order = $order;
             $mode = $this->post->mode[$key];
 
             /* Add id to check alias. */
@@ -506,7 +514,6 @@ class treeModel extends model
                     ->set('path')->eq($categoryPath)
                     ->where('id')->eq($categoryID)
                     ->exec();
-                $i ++;
             }
             else
             {
@@ -514,9 +521,11 @@ class treeModel extends model
                 $this->dao->update(TABLE_CATEGORY)
                     ->set('name')->eq($categoryName)
                     ->set('alias')->eq($alias)
+                    ->set('order')->eq($order)
                     ->where('id')->eq($categoryID)
                     ->exec();
             }
+            $i ++;
         }
 
         return !dao::isError();

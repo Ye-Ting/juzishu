@@ -2,8 +2,8 @@
 /**
  * The browse view file of block module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     block
  * @version     $Id$
@@ -14,8 +14,11 @@
 <div class='panel'>
   <div class='panel-heading'>
     <strong><i class='icon-th'></i> <?php echo $lang->block->browseBlocks;?></strong>
+    <?php foreach($templates as $template):?>
+      <?php echo html::a(helper::createLink('block', 'admin', 'template=' . $template['code']), $template['name'], $currentTemplate == $template['code'] ? "class='active'" : "");?>
+    <?php endforeach;?>
     <div class='panel-actions'>
-      <?php echo html::a(inlink('create'), '<i class="icon-plus"></i> ' . $lang->block->create, 'class="btn btn-primary"');?>
+      <?php echo html::a(inlink('create', "template=$currentTemplate"), '<i class="icon-plus"></i> ' . $lang->block->create, 'class="btn btn-primary"');?>
     </div>
   </div>
   <table class='table table-bordered table-hover table-striped'>
@@ -29,10 +32,10 @@
     <tr class='text-center'>
       <td><?php echo $block->id;?></td>
       <td class='text-left'><?php echo $block->title;?></td>
-      <td><?php echo $lang->block->typeList[$block->type];?></td>
+      <td><?php echo $lang->block->$currentTemplate->typeList[$block->type];?></td>
       <td>
         <?php 
-        echo html::a(inlink('edit',   "blockID=$block->id"), $lang->edit);
+        echo html::a(inlink('edit',   "template=$currentTemplate&blockID=$block->id&type=$block->type"), $lang->edit);
         echo html::a(inlink('delete', "blockID=$block->id"), $lang->delete, "class='deleter'");
         ?>
       </td>

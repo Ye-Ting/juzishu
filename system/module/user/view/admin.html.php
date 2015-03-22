@@ -2,8 +2,8 @@
 /**
  * The admin view file of user module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Yangyang Shi <shiyangyangwork@yahoo.cn>
  * @package     User
  * @version     $Id$
@@ -13,6 +13,7 @@
 <?php
 include '../../common/view/header.admin.html.php';
 js::set('provider', $this->get->provider);
+js::set('admin', $this->get->admin);
 ?>
 <div class="panel">
   <div class="panel-heading">
@@ -25,7 +26,7 @@ js::set('provider', $this->get->provider);
           echo html::input('user', $this->get->user, "class='form-control search-query' placeholder='{$lang->user->inputUserName}'"); 
           ?>
           <span class="input-group-btn">
-            <?php echo html::submitButton($lang->user->searchUser,"btn btn-primary"); ?>
+            <?php echo html::submitButton($lang->user->searchUser, "btn btn-primary"); ?>
           </span>
         </div>
       </form>

@@ -2,8 +2,8 @@
 /**
  * The model file of site module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan <guanxiying@xirangit.com>
  * @package     site
  * @version     $Id$
@@ -27,7 +27,8 @@ class siteModel extends model
         if(!isset($this->config->site->indexKeywords)) $this->config->site->indexKeywords = '';
         if(!isset($this->config->site->slogan))        $this->config->site->slogan        = '';
         if(!isset($this->config->site->copyright))     $this->config->site->copyright     = '';
-        if(!isset($this->config->site->icp))           $this->config->site->icp           = '';
+        if(!isset($this->config->site->icpSN))         $this->config->site->icpSN         = '';
+        if(!isset($this->config->site->meta))          $this->config->site->meta          = '';
         if(!isset($this->config->site->desc))          $this->config->site->desc          = '';
         if(!isset($this->config->site->theme))         $this->config->site->theme         = 'default';
         if(!isset($this->config->site->lang))          $this->config->site->lang          = 'zh-cn';
@@ -38,5 +39,7 @@ class siteModel extends model
         if(!isset($this->config->company->desc))       $this->config->company->desc       = '';
         if(!isset($this->config->company->content))    $this->config->company->content    = '';
         if(!isset($this->config->company->contact))    $this->config->company->contact    = json_encode(array());
+
+        if(!isset($this->config->product))             $this->config->product             = new stdclass();
     }
 }

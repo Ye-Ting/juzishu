@@ -2,8 +2,8 @@
 /**
  * The model file of slide module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan <guanxiying@xirangit.com>
  * @package     slide
  * @version     $Id$
@@ -67,12 +67,14 @@ class slideModel extends model
             ->remove('files')
             ->get();
 
-        $slide->label       = array_values($slide->label);
-        $slide->buttonClass = array_values($slide->buttonClass);
-        $slide->buttonUrl   = array_values($slide->buttonUrl);
+        $slide->label        = array_values($slide->label);
+        $slide->buttonClass  = array_values($slide->buttonClass);
+        $slide->buttonUrl    = array_values($slide->buttonUrl);
+        $slide->buttonTarget = array_values($slide->buttonTarget);
+        $slide->createdDate  = time();
         if($slide->backgroundType == 'color')
         {
-            $this->dao->insert('slide')->data($slide, 'label,buttonClass,buttonUrl')->batchCheck('backgroundColor,height', 'notempty')->check('height', 'ge', 100);
+            $this->dao->insert('slide')->data($slide, 'label,buttonClass,buttonUrl,buttonTarget')->batchCheck($this->config->slide->require->create, 'notempty')->check('height', 'ge', 100);
             if(dao::isError()) return false;
         }
 
@@ -105,13 +107,15 @@ class slideModel extends model
 
         if($slide->backgroundType == 'color')
         {
-            $this->dao->insert('slide')->data($slide, 'label,buttonClass,buttonUrl')->batchCheck('backgroundColor,height', 'notempty')->check('height', 'ge', 100);
+            $this->dao->insert('slide')->data($slide, 'label,buttonClass,buttonUrl,buttonTarget')->batchCheck($this->config->slide->require->edit, 'notempty')->check('height', 'ge', 100);
             if(dao::isError()) return false;
         }
 
-        $slide->label       = array_values($slide->label);
-        $slide->buttonClass = array_values($slide->buttonClass);
-        $slide->buttonUrl   = array_values($slide->buttonUrl);
+        $slide->label         = array_values($slide->label);
+        $slide->buttonClass   = array_values($slide->buttonClass);
+        $slide->buttonUrl     = array_values($slide->buttonUrl);
+        $slide->buttonTarget  = array_values($slide->buttonTarget);
+        $slide->createdDate   = time();
 
         $this->dao->update(TABLE_CONFIG)
             ->set('value')->eq(helper::jsonEncode($slide))

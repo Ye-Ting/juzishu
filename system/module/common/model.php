@@ -2,8 +2,8 @@
 /**
  * The model file of common module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     common
  * @version     $Id$
@@ -67,9 +67,13 @@ class commonModel extends model
      */
     public function startSession()
     {
-        $sessionName = $this->config->sessionVar;
-        session_name($sessionName);
-        if(!isset($_SESSION)) session_start();
+        if(!defined('SESSION_STARTED'))
+        {
+            $sessionName = $this->config->sessionVar;
+            session_name($sessionName);
+            session_start();
+            define('SESSION_STARTED', true);
+        }
     }
 
     /**
@@ -107,18 +111,33 @@ class commonModel extends model
      */
     public static function hasPriv($module, $method)
     {
+        $module = strtolower($module);
+        $method = strtolower($method);
         global $app, $config;
 
         if(RUN_MODE == 'admin')
         {
             if($app->user->admin == 'no')    return false;
             if($app->user->admin == 'super') return true;
+
+            return false;
         }
 
         if(!commonModel::isAvailable($module)) return false;
 
         $rights  = $app->user->rights;
-        if(isset($rights[strtolower($module)][strtolower($method)])) return true;
+        if(isset($rights[$module][$method])) return true;
+
+        /* Check rights one more time to enable new created rights.*/
+        if($app->user->account == 'guest')
+        { 
+            if(isset($config->rights->guest[$module][$method])) return true;
+        }
+        else
+        {
+            if(isset($config->rights->guest[$module][$method]) or isset($config->rights->member[$module][$method])) return true;
+        }
+
         return false;
     }
 
@@ -139,7 +158,7 @@ class commonModel extends model
         {
             foreach($config->dependence->$module as $dependModule)
             {
-                if(!isset($config->site->moduleEnabled) or strpos($config->site->moduleEnabled, $dependModule) === false) return false;
+                if(!isset($config->site->modules) or strpos($config->site->modules, $dependModule) === false) return false;
             }
         }
 
@@ -177,7 +196,7 @@ class commonModel extends model
      */
     public function isOpenMethod($module, $method)
     {   
-        if($module == 'user'and strpos(',login|logout|deny|resetpassword|checkresetkey', $method)) return true;
+        if($module == 'user' and strpos(',login|logout|deny|resetpassword|checkresetkey', $method)) return true;
         if($module == 'wechat' and $method == 'response') return true;
 
         if($this->loadModel('user')->isLogon() and stripos($method, 'ajax') !== false) return true;
@@ -238,7 +257,7 @@ class commonModel extends model
 
         if(!isset($lang->$currentModule->menu)) return false;
 
-        $string = "<ul class='nav nav-primary nav-stacked leftmenu affix'>\n";
+        $string = "<ul class='nav-left nav nav-primary nav-stacked'>\n";
 
         /* Get menus of current module and current method. */
         $moduleMenus   = $lang->$currentModule->menu;  
@@ -286,7 +305,7 @@ class commonModel extends model
         global $app, $lang , $config;
 
         $string  = '<ul class="nav navbar-nav navbar-right">';
-        $string .= sprintf('<li>%s</li>', html::a($config->webRoot, '<i class="icon-home icon-large"></i> ' . $lang->frontHome, "target='_blank' class='navbar-link'"));
+        $string .= sprintf('<li>%s</li>', html::a($config->homeRoot, '<i class="icon-home icon-large"></i> ' . $lang->frontHome, "target='_blank' class='navbar-link'"));
         $string .= sprintf('<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-user icon-large"></i> %s <b class="caret"></b></a>', $app->user->realname);
         $string .= sprintf('<ul class="dropdown-menu"><li>%s</li><li>%s</li></ul>', html::a(helper::createLink('user', 'changePassword'), $lang->changePassword, "data-toggle='modal'"), html::a(helper::createLink('user','logout'), $lang->logout));
         $string .= '</li></ul>';
@@ -316,7 +335,24 @@ class commonModel extends model
         {
             echo html::a(helper::createLink('user', 'login'), $app->lang->login);
             echo html::a(helper::createLink('user', 'register'), $app->lang->register);
-        }    
+        }
+    }
+
+    /**
+     * Print language bar.
+     * 
+     * @static
+     * @access public
+     * @return string
+     */
+    public static function printLanguageBar()
+    {
+        global $config, $app;
+        $langs = explode(',', $config->site->lang);
+        foreach($langs as $lang)
+        {
+            echo html::a(getHomeRoot($config->langsShortcuts[$lang]), $config->langs[$lang]);
+        }
     }
 
     /**
@@ -330,7 +366,7 @@ class commonModel extends model
     {
         global $app;
         echo "<ul class='nav'>";
-        echo '<li>' . html::a($app->config->webRoot, $app->lang->homePage) . '</li>';
+        echo '<li>' . html::a($app->config->homeRoot, $app->lang->homePage) . '</li>';
         foreach($app->site->menuLinks as $menu) echo "<li>$menu</li>";
         echo '</ul>';
     }
@@ -349,7 +385,7 @@ class commonModel extends model
         echo '<ul class="breadcrumb">';
         if($root == '')
         {
-            echo '<li>' . $this->lang->currentPos . $this->lang->colon . html::a($this->config->webRoot, $this->lang->home) . '</li>';
+            echo '<li>' . "<span class='breadcrumb-title'>" . $this->lang->currentPos . $this->lang->colon . '</span>' . html::a($this->config->homeRoot, $this->lang->home) . '</li>';
         }
         else
         {
@@ -599,6 +635,8 @@ class commonModel extends model
      */
     public function printForum($board = '')
     {
+        if($board == 'forum') echo '<li>' . html::a(helper::createLink('forum', 'index'), $this->lang->forumHome) . '</li>';
+
         if(empty($board->pathNames)) return '';
 
         $divider = $this->lang->divider;
@@ -624,20 +662,6 @@ class commonModel extends model
     {
         $this->printForum($board);
         if($thread) echo '<li>' . $thread->title . '</li>';
-    }
-
-    /**
-     * Print the position bar of Search. 
-     * 
-     * @param  int    $module 
-     * @param  int    $object 
-     * @param  int    $keywords 
-     * @access public
-     * @return void
-     */
-    public function printSearch($module, $object, $keywords)
-    {
-        echo "<li> {$this->lang->position['search']} > " . html::a(inlink('xunSearch', "module=$module") . "?key=$keywords", $keywords);
     }
 
     /**
@@ -687,7 +711,24 @@ class commonModel extends model
 
         return $link;
     }
-    
+ 
+    /**
+     * Verfy administrator through ok file.
+     * 
+     * @access public
+     * @return array
+     */
+    public function verfyAdmin()
+    {
+        $okFile = $this->app->getWwwRoot() . 'ok.txt';
+        if(!file_exists($okFile) or time() - filemtime($okFile) > 3600)
+        {
+            return array('result' => 'fail', 'okFile' => $okFile);
+        }
+
+        return array('result' => 'success');
+    }
+   
     /**
      * Load category and page alias. 
      *

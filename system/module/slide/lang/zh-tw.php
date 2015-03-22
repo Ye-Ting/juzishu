@@ -2,8 +2,8 @@
 /**
  * The slide category zh-tw file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青島息壤網絡信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     slide
  * @version     $Id$
@@ -12,11 +12,13 @@
 $lang->slide->common = '幻燈片';
 
 $lang->slide->title      = '標題';
+$lang->slide->titleColor = '標題顏色';
 $lang->slide->image      = '圖片';
 $lang->slide->mainLink   = '連結';
 $lang->slide->summary    = '摘要';
 $lang->slide->label      = '按鈕文字';
 $lang->slide->button     = '按鈕';
+$lang->slide->newWindow  = '新開窗口';
 
 $lang->slide->background = new stdclass();
 
@@ -27,7 +29,7 @@ $lang->slide->background->color = '背景顏色';
 $lang->slide->background->typeList = new stdclass();
 
 $lang->slide->background->typeList->image = '圖片';
-$lang->slide->background->typeList->color = '純色';
+$lang->slide->background->typeList->color = '顏色';
 
 $lang->slide->height      = '高度';
 $lang->slide->url         = '連結';
@@ -37,12 +39,14 @@ $lang->slide->buttonUrl   = '按鈕連結';
 $lang->slide->buttonColor = '顏色';
 
 $lang->slide->sort     = '排序';
-$lang->slide->sortTip  = '移動幻燈片後，請點擊 “保存排序” 按保存。';
-$lang->slide->saveSort = '保存排序';
 $lang->slide->admin    = '幻燈片設置';
 $lang->slide->create   = '添加幻燈片';
 $lang->slide->edit     = '編輯幻燈片';
 
 $lang->slide->successSort     = '排序成功保存';
 $lang->slide->noImageSelected = '沒有選擇圖片';
-$lang->slide->suitableSize    = '所有圖片尺寸保持一致，最佳尺寸：1140px X 270px(寬 X 高)';
+$lang->slide->suitableSize    = '背景圖片大小保持一致。';
+
+/* Targets setting. */
+$lang->slide->target = new stdclass();
+$lang->slide->target->_blank = '新開窗口';

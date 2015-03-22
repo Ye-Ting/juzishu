@@ -1,59 +1,47 @@
-<div class='modal-dialog w-800px modal-theme'>
-  <div class='modal-content'>
-    <div class='modal-header'>
-      <?php echo html::closeButton();?>
-      <h4 class='modal-title'><i class='icon-cog'></i> <?php echo $lang->ui->customtheme;?></h4>
-    </div>
-    <div class='modal-body'>
-      <form method='post' action='<?php echo inlink('customtheme', "theme={$theme}");?>' id='customThemeForm' class='form'>
+<?php include '../../common/view/header.modal.html.php';?>
+<?php if(!$hasPriv):?>
+<div class='alert alert-danger'>
+  <div>
+    <?php echo $errors;?>
+    <span class='pull-right'><?php echo html::a($this->inlink('customtheme', "theme={$theme}&template={$template}"), $lang->ui->template->reload, "class='btn btn-primary loadInModal'");?></span>
+  </div>
+</div>
+<?php else:?>
+<form method='post' action='<?php echo inlink('customtheme', "theme={$theme}&template={$template}");?>' id='customThemeForm' class='form' data-theme='<?php echo $theme?>' data-template='<?php echo $template?>'>
+  <ul class='nav nav-tabs'>
+    <?php foreach($lang->ui->groups as $group => $name):?>
+    <li><?php echo html::a('#' . $group . 'Tab', $name, "data-toggle='tab' class='theme-control-tab'");?></li>
+    <?php endforeach;?>
+
+    <li class='pull-right text-right w-150px'><button type='button' id='resetTheme' class='btn btn-link btn-sm text-danger' data-success-tip='<?php echo $lang->ui->theme->resetTip?>'><?php echo $lang->ui->theme->reset?></button></li>
+  </ul>
+  <div class='tab-content'>
+    <?php foreach($lang->ui->groups as $group => $name):?>
+    <div class='tab-pane theme-control-tab-pane' id='<?php echo $group?>Tab'>
+      <table class='table table-form borderless'>
         <?php
-        $colorPlates = '';
-        foreach (explode('|', $lang->ui->theme->colorPlates) as $value)
-        {
-            $colorPlates .= "<div class='color color-tile' data='#" . $value . "'><i class='icon-ok'></i></div>";
-        }
+        $options = isset($config->ui->themes[$theme][$group]) ? $config->ui->themes[$theme][$group] : '';
+        if($options) foreach($options as $selector => $attributes):
         ?>
-        <table class='table table-form borderless'>
-          <tr>
-            <th><?php echo $lang->ui->theme->fontSize; ?></th>
-            <td>
-              <?php echo html::select('fontSize', $lang->ui->theme->fontSizeList, $config->themeSetting->fontSize, "class='form-control w-200px'");?>
-            </td>
-          </tr>
-          <tr>
-            <th><?php echo $lang->ui->theme->borderRadius; ?></th>
-            <td>
-              <?php echo html::select('borderRadius', $lang->ui->theme->borderRadiusList, $config->themeSetting->borderRadius, "class='form-control w-200px'");?>
-            </td>
-          </tr>
-          <tr>
-            <th class='w-100px'><?php echo $lang->ui->theme->primaryColor; ?></th>
-            <td>
-              <div class='colorplate clearfix'>
-                <div class='input-group color active' data='<?php echo $config->themeSetting->primaryColor;?>'>
-                  <span class='input-group-addon'> <i class='icon icon-question'></i><i class='icon-ok'></i> </span>
-                  <?php echo html::input('primaryColor', $config->themeSetting->primaryColor, "class='form-control input-color text-latin' placeholder='" . $lang->ui->custom . "'");?>
-                </div>
-                <?php echo $colorPlates; ?>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <th><?php echo $lang->ui->theme->backColor; ?></th>
-            <td>
-              <div class='colorplate clearfix'>
-                <div class='input-group color active' data='<?php echo $config->themeSetting->backColor;?>'>
-                  <span class='input-group-addon'> <i class='icon icon-question'></i><i class='icon-ok'></i> </span>
-                  <?php echo html::input('backColor', $config->themeSetting->backColor, "class='form-control input-color text-latin' placeholder='" . $lang->ui->custom . "'");?>
-                </div>
-                <?php echo $colorPlates; ?>
-              </div>
-            </td>
-          </tr>
-          <tr><td></td><td><?php echo html::hidden('theme', $theme) . html::hidden('css') . html::submitButton();?></td></tr>
-        </table>
-      </form>
+        <tr class='theme-control-group'>
+          <th><?php echo $lang->ui->{$selector};?></th>
+          <td>
+            <div class='row'>
+              <?php foreach($attributes as $label => $params):?>
+              <?php $value = isset($setting[$params['name']]) ? $setting[$params['name']] : '';?>
+              <div class='col-sm-3'><?php $this->ui->printFormControl($label, $params, $value);?></div>
+              <?php endforeach;?>
+            </div>
+          </td>
+        </tr>
+        <?php endforeach;?>
+      </table>
     </div>
-  </div><!-- /.modal-content -->
-</div><!-- /.modal-dialog -->
-<?php if(isset($pageJS)) js::execute($pageJS);?>
+    <?php endforeach;?>
+  </div>
+  <div class="form-footer">
+    <?php echo html::hidden('theme', $theme) . html::hidden('template', $template) . html::submitButton();?>
+  </div>
+</form>
+<?php endif;?>
+<?php include '../../common/view/footer.modal.html.php';?>

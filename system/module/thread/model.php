@@ -2,8 +2,8 @@
 /**
  * The model file of thread module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     thread
  * @version     $Id$
@@ -50,7 +50,9 @@ class threadModel extends model
             $board = $board->id;
         }
         $threads = $this->dao->select('*')->from(TABLE_THREAD)
-            ->beginIf($board)->where('board')->in($board)->fi()
+            ->where(1)
+            ->beginIf(RUN_MODE == 'front')->andWhere('hidden')->eq('0')->fi()
+            ->beginIf($board)->andWhere('board')->in($board)->fi()
             ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll('id');
@@ -60,6 +62,31 @@ class threadModel extends model
         $this->setRealNames($threads);
 
         return $this->process($threads);
+    }
+
+    /**
+     * Get latest threads. 
+     *
+     * @param string  $board  the boards
+     * @param int     $count
+     * @access public
+     * @return array
+     */
+    public function getLatest($boards, $count)
+    {
+        if(is_array($boards))
+        {
+            foreach($boards as $board) $subBoard = $this->getSubBoard($board);
+        }
+        else
+        {
+            $subBoard = $this->getSubBoard($boards);
+        }
+
+        $this->app->loadClass('pager', true);
+        $pager = new pager($recTotal = 0, $recPerPage = $count, 1);
+
+        return $this->getList($subBoard, 'addedDate_desc', $pager);
     }
 
     /**
@@ -138,8 +165,9 @@ class threadModel extends model
         $allowedTags = $this->app->user->admin == 'super' ? $this->config->allowedTags->admin : $this->config->allowedTags->front;
 
         $thread = fixer::input('post')
-            ->stripTags('content', $allowedTags)
+            ->stripTags('content,link', $allowedTags)
             ->setIF(!$canManage, 'readonly', 0)
+            ->setIF(!$this->post->isLink, 'link', '')
             ->setForce('board', $boardID)
             ->setForce('author', $this->app->user->account)
             ->setForce('addedDate', $now) 
@@ -149,9 +177,10 @@ class threadModel extends model
             ->get();
 
         $this->dao->insert(TABLE_THREAD)
-            ->data($thread, $skip = 'captcha, uid')
+            ->data($thread, $skip = 'captcha, uid, isLink')
             ->autoCheck()
-            ->batchCheck('title, content', 'notempty')
+            ->batchCheckIF(!$this->post->isLink, $this->config->thread->require->post, 'notempty')
+            ->batchCheckIF($this->post->isLink, $this->config->thread->require->link, 'notempty')
             ->check('captcha', 'captcha')
             ->exec();
 
@@ -204,7 +233,8 @@ class threadModel extends model
 
         $thread = fixer::input('post')
             ->setIF(!$canManage, 'readonly', 0)
-            ->stripTags('content', $allowedTags)
+            ->setIF(!$this->post->isLink, 'link', '')
+            ->stripTags('content,link', $allowedTags)
             ->setForce('editor', $this->session->user->account)
             ->setForce('editedDate', helper::now())
             ->setDefault('readonly', 0)
@@ -212,9 +242,10 @@ class threadModel extends model
             ->get();
 
         $this->dao->update(TABLE_THREAD)
-            ->data($thread, $skip = 'captcha, uid')
+            ->data($thread, $skip = 'captcha, uid, isLink')
             ->autoCheck()
-            ->batchCheck('title, content', 'notempty')
+            ->batchCheckIF(!$this->post->isLink, $this->config->thread->require->edit, 'notempty')
+            ->batchCheckIF($this->post->isLink, $this->config->thread->require->link, 'notempty')
             ->check('captcha', 'captcha')
             ->where('id')->eq($threadID)
             ->exec();
@@ -240,7 +271,22 @@ class threadModel extends model
      */
     public function transfer($threadID, $oldBoard, $targetBoard)
     {
-        $this->dao->update(TABLE_THREAD)->set('board')->eq($targetBoard)->where('id')->eq($threadID)->exec();
+        $oldThread = $this->getByID($threadID);
+
+        $newThread = $oldThread;
+        $newThread->board = $targetBoard;
+
+        unset($newThread->id);
+        unset($newThread->editorRealname);
+        unset($newThread->authorRealname);
+        unset($newThread->files);
+
+        $this->dao->insert(TABLE_THREAD)->data($newThread)->autoCheck()->exec();
+        $newThreadID = $this->dao->lastInsertID();
+
+        $oldThread->board = $oldBoard;
+        $oldThread->link  = commonModel::createFrontLink('thread', 'view', "threadID=$newThreadID");
+        $this->dao->update(TABLE_THREAD)->data($oldThread)->where('id')->eq($threadID)->exec();
 
         if(dao::isError()) return false;
 
@@ -306,6 +352,7 @@ class threadModel extends model
         {
             if($file->isImage)
             {
+                if($file->editor) continue;
                 $imagesHtml .= "<li class='file-image file-{$file->extension}'>" . html::a(helper::createLink('file', 'download', "fileID=$file->id&mose=left"), html::image($file->fullURL), "target='_blank' data-toggle='lightbox'");
                 if($canManage) $imagesHtml .= "<span class='file-actions'>" . html::a(helper::createLink('thread', 'deleteFile', "threadID=$thread->id&fileID=$file->id"), "<i class='icon-trash'></i>", "class='deleter'") . '</span>';
                 $imagesHtml .= '</li>';
@@ -318,7 +365,7 @@ class threadModel extends model
                 $filesHtml .= '</li>';
             }
         }
-        echo "<ul class='article-files clearfix'><li class='article-files-heading'>". $this->lang->thread->file . '</li>' . $imagesHtml . $filesHtml . '</ul>';
+        if($imagesHtml or $filesHtml) echo "<ul class='files-list clearfix'><li class='files-list-heading'>". $this->lang->thread->file . '</li>' . $imagesHtml . $filesHtml . '</ul>';
     }
 
     /**
@@ -358,9 +405,12 @@ class threadModel extends model
 
         $data = new stdclass();
         $data->replies     = $replies;
-        $data->repliedBy   = $reply->author;
-        $data->repliedDate = $reply->addedDate;
-        $data->replyID     = $reply->id;
+        if($reply)
+        {
+            $data->repliedBy   = $reply->author;
+            $data->repliedDate = $reply->addedDate;
+            $data->replyID     = $reply->id;
+        }
 
         $this->dao->update(TABLE_THREAD)->data($data)->where('id')->eq($threadID)->exec();
     }
@@ -488,5 +538,32 @@ EOT;
            $thread->editorRealname    = !empty($thread->editor) ? $speakers[$thread->editor] : '';
            $thread->repliedByRealname = !empty($thread->repliedBy) ? $speakers[$thread->repliedBy] : '';
         }
+    }
+
+    /**
+     * Get children board.
+     * 
+     * @param  array|int  $board 
+     * @access public
+     * @return array|int 
+     */
+    public function getSubBoard($board)
+    {
+        $parents  = $this->dao->select('*')->from(TABLE_CATEGORY)->where('parent')->eq(0)->andWhere('type')->eq('forum')->fetchAll('id');
+        $children = $this->dao->select('*')->from(TABLE_CATEGORY)->where('parent')->ne(0)->andWhere('type')->eq('forum')->fetchAll('id');
+        $parents  = array_keys($parents);
+           
+        if(in_array($board, $parents))
+        {
+            $subBoard = array();
+            foreach($children as $child)
+            {
+                if($child->parent == $board) $subBoard[] = $child->id;
+            }
+
+            return $subBoard;
+        }
+
+        return $board;
     }
 }

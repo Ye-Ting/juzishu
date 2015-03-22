@@ -50,28 +50,12 @@ class router
     private $appRoot;
 
     /**
-     * The root directory of the app library($this->appRoot/lib).
-     * 
-     * @var string
-     * @access private
-     */
-    private $appLibRoot;
-
-    /**
      * The root directory of temp.
      * 
      * @var string
      * @access private
      */
     private $tmpRoot;
-
-    /**
-     * The root directory of cache.
-     * 
-     * @var string
-     * @access private
-     */
-    private $cacheRoot;
 
     /**
      * The root directory of log.
@@ -106,13 +90,20 @@ class router
     private $dataRoot;
 
     /**
+     * The root directory of template.
+     * 
+     * @var string
+     * @access private
+     */
+    private $tplRoot;
+
+    /**
      * The lang of the client user.
      * 
      * @var string
      * @access private
      */
     private $clientLang;
-
 
     /**
      * The control object of current module.
@@ -286,24 +277,30 @@ class router
         $this->setFrameRoot();
         $this->setCoreLibRoot();
         $this->setAppRoot($appName, $appRoot);
-        $this->setAppLibRoot();
         $this->setTmpRoot();
-        $this->setCacheRoot();
         $this->setLogRoot();
         $this->setConfigRoot();
         $this->setModuleRoot();
+        $this->setWwwRoot();
         $this->setDataRoot();
+        $this->setTplRoot();
 
+        $this->filterSuperVars();
         $this->setSuperVars();
 
         $this->loadConfig('common');
         $this->setDebug();
         $this->setErrorHandler();
 
+        $this->fixRequestURI();
+        $this->setSuperVars();
+
         $this->sendHeader();
         $this->connectDB();
 
+        $this->fixDomain();
         $this->setClientLang();
+        $this->fixLangConfig();
         $this->loadLang('common');
         $this->setTimezone();
 
@@ -420,17 +417,6 @@ class router
     }
 
     /**
-     * Set the app lib root.
-     * 
-     * @access protected
-     * @return void
-     */
-    protected function setAppLibRoot()
-    {
-        $this->appLibRoot = $this->appRoot . 'lib' . DS;
-    }
-
-    /**
      * Set the tmp root.
      * 
      * @access protected
@@ -439,17 +425,6 @@ class router
     protected function setTmpRoot()
     {
         $this->tmpRoot = $this->appRoot . 'tmp' . DS;
-    }
-
-    /**
-     * Set the cache root.
-     * 
-     * @access protected
-     * @return void
-     */
-    protected function setCacheRoot()
-    {
-        $this->cacheRoot = $this->tmpRoot . 'cache' . DS;
     }
 
     /**
@@ -486,6 +461,17 @@ class router
     }
 
     /**
+     * Set the www root.
+     * 
+     * @access protected
+     * @return void
+     */
+    protected function setWwwRoot()
+    {
+        $this->wwwRoot = rtrim(dirname($_SERVER['SCRIPT_FILENAME']), DS) . DS;
+    }
+
+    /**
      * Set the data root.
      * 
      * @access protected
@@ -493,8 +479,33 @@ class router
      */
     protected function setDataRoot()
     {
-        $this->wwwRoot = dirname($_SERVER['SCRIPT_FILENAME']);
-        $this->dataRoot = rtrim($this->wwwRoot, DS) . DS . 'data' . DS;
+        $this->dataRoot = $this->wwwRoot . 'data' . DS;
+    }
+
+    /**
+     * Set the data root.
+     * 
+     * @access protected
+     * @return void
+     */
+    protected function setTplRoot()
+    {
+        $this->tplRoot = $this->wwwRoot . 'template' . DS;
+    }
+
+    /**
+     * Filter superVars.
+     * 
+     * @access public
+     * @return void
+     */
+    public function filterSuperVars()
+    {
+        $_POST   = processArrayEvils($_POST);
+        $_GET    = processArrayEvils($_GET);
+        $_COOKIE = processArrayEvils($_COOKIE);
+        unset($_GLOBALS);
+        unset($_REQUEST);
     }
 
     /**
@@ -610,14 +621,14 @@ class router
     }
     
     /**
-     * Get the $appLibRoot var
+     * Get the $wwwRoot var
      * 
      * @access public
      * @return string
      */
-    public function getAppLibRoot()
+    public function getWwwRoot()
     {
-        return $this->appLibRoot;
+        return $this->wwwRoot;
     }
 
     /**
@@ -629,17 +640,6 @@ class router
     public function getTmpRoot()
     {
         return $this->tmpRoot;
-    } 
-
-    /**
-     * Get the $cacheRoot var
-     * 
-     * @access public
-     * @return string
-     */
-    public function getCacheRoot()
-    {
-        return $this->cacheRoot;
     } 
 
     /**
@@ -686,44 +686,114 @@ class router
         return $this->dataRoot;
     }
 
+    /**
+     * Get the $dataroot var
+     * 
+     * @access public
+     * @return string
+     */
+    public function getTplRoot()
+    {
+        return $this->tplRoot;
+    }
+
+    /**
+     * Check domain exisits and header 301.
+     * 
+     * @access public
+     * @return void
+     */
+    public function fixDomain()
+    {
+        if(RUN_MODE == 'install' or RUN_MODE == 'upgrade' or !$this->config->installed) return true;
+        $result = $this->dbh->query("select value from " . TABLE_CONFIG . " where owner = 'system' and module = 'common' and section = 'site' and `key` = 'domain'")->fetch();
+        $mainDomain = !empty($result->value) ? $result->value : '';
+        $mainDomain = str_replace('http://', '', $mainDomain);
+        $webRoot = getWebRoot(true);
+        $currentURI = rtrim($webRoot, '/') . $this->server->request_uri;
+        if($mainDomain and strpos($webRoot, $mainDomain) == false)
+        {
+            header301(str_replace($this->server->http_host, $mainDomain, $currentURI));
+        }
+    }
+
     //-------------------- Client environment related functions --------------------//
 
     /**
      * Set the language used by the client user.
      * 
-     *
      * @param   string $lang  zh-cn|zh-tw|en
      * @access  public
      * @return  void
      */
     public function setClientLang($lang = '')
     {
-        if(RUN_MODE == 'front') return $this->clientLang = $this->config->default->lang;
+        if(RUN_MODE != 'install' and RUN_MODE != 'upgrade'  and $this->config->installed)
+        {
+            $result = $this->dbh->query("select value from " . TABLE_CONFIG . " where owner = 'system' and module = 'common' and section = 'site' and `key` = 'defaultLang'")->fetch();
+            $defaultLang = !empty($result->value) ? $result->value : $this->config->default->lang;
+
+            $result = $this->dbh->query("select value from " . TABLE_CONFIG . " where owner = 'system' and module = 'common' and section = 'site' and `key` = 'lang'")->fetch();
+            $enabledLangs = isset($result->value) ? $result->value : '';
+            $enabledLangs = explode(',', $enabledLangs);
+            if(empty($enabledLangs)) $enabledLangs = array_keys($this->config->langs);
+            if(!in_array($defaultLang, $enabledLangs)) $defaultLang = current($enabledLangs);
+        }
+        else
+        {
+            $defaultLang  = $this->config->default->lang;
+            $enabledLangs = array_keys($this->config->langs);
+        }
 
         if(!empty($lang))
         {
             $this->clientLang = $lang;
         }
+        elseif(RUN_MODE == 'front')
+        {
+            $flipedLangs = array_flip($this->config->langsShortcuts);
+            if($this->config->requestType == 'GET' and isset($_GET[$this->config->langVar])) $this->clientLang = $flipedLangs[$_GET[$this->config->langVar]];
+            if($this->config->requestType == 'PATH_INFO')
+            {
+                foreach($this->config->langsShortcuts as $language => $code)
+                {
+                    if(strpos(trim($_SERVER['REQUEST_URI'], '/'), $code) === 0) $this->clientLang = $language;
+                }
+            }
+        }
         elseif(isset($_COOKIE['lang']))
         {
             $this->clientLang = $_COOKIE['lang'];
-        }    
+        }
         elseif(RUN_MODE == 'admin' and isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
         {
             $this->clientLang = strpos($_SERVER['HTTP_ACCEPT_LANGUAGE'], ',') === false ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, strpos($_SERVER['HTTP_ACCEPT_LANGUAGE'], ','));
         }
 
-        if(!empty($this->clientLang))
+        if(!empty($this->clientLang) and in_array($this->clientLang, $enabledLangs)) 
         {
             $this->clientLang = strtolower($this->clientLang);
-            if(!isset($this->config->langs[$this->clientLang])) $this->clientLang = $this->config->default->lang;
         }
         else
         {
-            $this->clientLang = $this->config->default->lang;
+            $this->clientLang = $defaultLang;
         }
-
         setcookie('lang', $this->clientLang, $this->config->cookieLife, $this->config->cookiePath);
+
+        if(in_array($this->clientLang, $enabledLangs)) return $this->clientLang;
+    }
+
+    /**
+     * Set lang code.
+     * 
+     * @access public
+     * @return void
+     */
+    public function fixLangConfig()
+    {
+        $langCode = $this->clientLang == $this->config->default->lang ? '' : $this->config->langsShortcuts[$this->clientLang];
+        $this->config->langCode = $langCode;
+        $this->config->homeRoot = getHomeRoot();
     }
 
     /**
@@ -748,6 +818,26 @@ class router
         return $this->config->webRoot;
     }
 
+    /**
+     * Fix REQUEST_URI of iis.
+     * 
+     * @access public
+     * @return void
+     */
+    public function fixRequestURI()
+    {
+        if($this->config->requestType == 'GET') return true;
+
+        if(isset($_SERVER['HTTP_X_REWRITE_URL']))
+        {
+            $_SERVER['REQUEST_URI'] = $_SERVER['HTTP_X_REWRITE_URL'];
+        }
+        elseif(isset($_SERVER['HTTP_REQUEST_URI']))
+        {
+            $_SERVER['REQUEST_URI'] = $_SERVER['HTTP_REQUEST_URI'];
+        }
+    }
+
     //-------------------- Request related methods. --------------------//
 
     /**
@@ -761,7 +851,12 @@ class router
         if($this->config->requestType == 'PATH_INFO')
         {
             $this->parsePathInfo();
+
+            $langCode = $this->config->langsShortcuts[$this->clientLang];
+            if(strpos($this->URI, $langCode) === 0) $this->URI = substr($this->URI, strlen($langCode) + 1);
+
             $this->URI = seo::parseURI($this->URI);
+
             $this->setRouteByPathInfo();
         }
         elseif($this->config->requestType == 'GET')
@@ -922,7 +1017,7 @@ class router
      */
     public function setModuleName($moduleName = '')
     {
-        $this->moduleName = strtolower($moduleName);
+        $this->moduleName = strip_tags(urldecode(strtolower($moduleName)));
     }
 
     /**
@@ -961,7 +1056,7 @@ class router
      */
     public function setMethodName($methodName = '')
     {
-        $this->methodName = strtolower($methodName);
+        $this->methodName = strip_tags(urldecode(strtolower($methodName)));
     }
 
     /**
@@ -1024,7 +1119,8 @@ class router
     public function setRouteByPathInfo()
     {
         if(!empty($this->URI))
-        {
+        { 
+
             /* There's the request seperator, split the URI by it. */
             if(strpos($this->URI, '-') !== false)
             {
@@ -1096,13 +1192,29 @@ class router
         if(!method_exists($module, $methodName)) $this->triggerError("the module $moduleName has no $methodName method", __FILE__, __LINE__, $exit = true);
         $this->control = $module;
 
+        /* include default value for module*/
+        $defaultValueFiles = glob($this->getTmpRoot() . "defaultvalue/*.php");
+        if($defaultValueFiles) foreach($defaultValueFiles as $file) include $file;
+
         /* Get the default setings of the method to be called useing the reflecting. */
         $defaultParams = array();
         $methodReflect = new reflectionMethod($className, $methodName);
+
+        if($this->config->requestType == 'GET') unset($_GET[$this->config->langVar]);
         foreach($methodReflect->getParameters() as $param)
         {
-            $name    = $param->getName();
-            $default = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : '_NOT_SET';
+            $name = $param->getName();
+            
+            $default = '_NOT_SET';
+            if(isset($paramDefaultValue[$className][$methodName][$name]))
+            {
+                $default = $paramDefaultValue[$className][$methodName][$name];
+            }
+            elseif($param->isDefaultValueAvailable())
+            {
+                $default = $param->getDefaultValue();
+            }
+
             $defaultParams[$name] = $default;
         }
 
@@ -1178,7 +1290,7 @@ class router
         {
             if(isset($passedParams[$i]))
             {
-                $defaultParams[$key] = $passedParams[$i];
+                $defaultParams[$key] = strip_tags(urldecode($passedParams[$i]));
             }
             else
             {
@@ -1238,8 +1350,6 @@ class router
     /**
      * Load a class file.
      * 
-     * First search in $appLibRoot, then $coreLibRoot.
-     *
      * @param   string $className  the class name
      * @param   bool   $static     statis class or not
      * @access  public
@@ -1249,19 +1359,11 @@ class router
     {
         $className = strtolower($className);
 
-        /* Search in $appLibRoot. */
-        $classFile = $this->appLibRoot . $className;
+        /* Search in $coreLibRoot. */
+        $classFile = $this->coreLibRoot . $className;
         if(is_dir($classFile)) $classFile .= DS . $className;
         $classFile .= '.class.php';
-
-        if(!helper::import($classFile))
-        {
-            /* Search in $coreLibRoot. */
-            $classFile = $this->coreLibRoot . $className;
-            if(is_dir($classFile)) $classFile .= DS . $className;
-            $classFile .= '.class.php';
-            if(!helper::import($classFile)) $this->triggerError("class file $classFile not found", __FILE__, __LINE__, $exit = true);
-        }
+        if(!helper::import($classFile)) $this->triggerError("class file $classFile not found", __FILE__, __LINE__, $exit = true);
 
         /* If staitc, return. */
         if($static) return true;
@@ -1416,6 +1518,11 @@ class router
             $langFiles = array_merge(array($mainLangFile), $extLangFiles);
         }
 
+        $langPath     = $this->getTplRoot() . $this->config->template->name . DS . 'lang' . DS . $moduleName . DS; 
+        $templateLangFile = $langPath . $this->clientLang . '.php';
+
+        if(file_exists($templateLangFile)) $langFiles[] = $templateLangFile;
+
         global $lang;
         if(!is_object($lang)) $lang = new language();
         if(!isset($lang->$moduleName)) $lang->$moduleName = new stdclass();
@@ -1431,7 +1538,7 @@ class router
         $this->lang = $lang;
         return $lang;
     }
-
+    
     /**
      * Connect to database.
      * 
@@ -1545,14 +1652,17 @@ class router
         $errorLog .= "when visiting <strong>" . $this->getURI() . "</strong>\n";
 
         /* If the ip is pulic, hidden the full path of scripts. */
-        if(RUN_MODE == 'shell' and !($this->server->server_addr == '127.0.0.1' or filter_var($this->server->server_addr, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false))
+        if(RUN_MODE != 'shell' and !($this->server->server_addr == '127.0.0.1' or filter_var($this->server->server_addr, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false))
         {
             $errorLog  = str_replace($this->getBasePath(), '', $errorLog);
             $errorLog  = str_replace($this->wwwRoot, '', $errorLog);
         }
 
         /* Save to log file. */
-        $errorFile = $this->getLogRoot() . 'php.' . date('Ymd') . '.log';
+        $errorFile = $this->getLogRoot() . 'php.' . date('Ymd') . '.php';
+
+        if(!file_exists($errorFile)) file_put_contents($errorFile, "<?php die();?> \n");
+
         $fh = @fopen($errorFile, 'a');
         if($fh) fwrite($fh, strip_tags($errorLog)) && fclose($fh);
 
@@ -1603,7 +1713,10 @@ class router
     {
         if(!class_exists('dao')) return;
 
-        $sqlLog = $this->getLogRoot() . 'sql.' . date('Ymd') . '.log';
+        $sqlLog = $this->getLogRoot() . 'sql.' . date('Ymd') . '.php';
+
+        if(!file_exists($sqlLog)) file_put_contents($sqlLog, "<?php die();?> \n");
+
         $fh = @fopen($sqlLog, 'a');
         if(!$fh) return false;
         fwrite($fh, date('Ymd H:i:s') . ": " . $this->getURI() . "\n");

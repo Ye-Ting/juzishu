@@ -2,8 +2,8 @@
 /**
  * The wechat module zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Tingting Dai <daitingting@xirangit.com>
  * @package     wechat
  * @version     $Id$
@@ -118,7 +118,7 @@ $lang->wechat->placeholder->name     = 'Name of public';
 $lang->wechat->placeholder->account  = 'gh_xxx format';
 $lang->wechat->placeholder->token    = 'Token should English or numbers, length of 3-32 characters.';
 
-$lang->wechat->needCertified  = "This feature needs the account to be certified.";
-$lang->wechat->integrateInfo = "Please interate in the wechat control panel。
-                                <a href='http://www.chanzhi.org/book/weixin/90_integrate-weixin.html' target='_blank'>Help</a>";
-$lang->wechat->integrateDone = "I have interated with wechat server";
+$lang->wechat->curlSSLRequired = "This function requires curl module with ssl encryption transmission supports.";
+$lang->wechat->needCertified   = "This feature needs the account to be certified.";
+$lang->wechat->integrateInfo   = "Please interate in the wechat control panel. <a href='http://api.chanzhi.org/goto.php?item=help_wechat' target='_blank'>Help</a>";
+$lang->wechat->integrateDone   = "I have interated with wechat server";

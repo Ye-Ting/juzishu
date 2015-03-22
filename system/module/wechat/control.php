@@ -2,8 +2,8 @@
 /**
  * The control file of wechat module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     index
  * @version     $Id$
@@ -76,9 +76,11 @@ class wechat extends control
 
         if($_POST) $this->send($this->wechat->reply($this->api, $message));
 
-        $this->view->public  = $this->wechat->getByID($message->public);
-        $this->view->records = $this->wechat->getRecords($message);
-        $this->view->message = $message;
+        $this->view->title      = "<i class='icon-mail-reply'></i> " . $lang->wechat->message->reply;
+        $this->view->modalWidth = 700;
+        $this->view->public     = $this->wechat->getByID($message->public);
+        $this->view->records    = $this->wechat->getRecords($message);
+        $this->view->message    = $message;
         $this->display();
     }
 
@@ -93,8 +95,9 @@ class wechat extends control
         $publics = $this->wechat->getList();
         if(empty($publics)) $this->locate(inlink('create'));
 
-        $this->view->title   = $this->lang->wechat->admin;
-        $this->view->publics = $publics;
+        $this->view->title     = $this->lang->wechat->admin;
+        $this->view->publics   = $publics;
+        $this->view->sslLoaded = extension_loaded('openssl');
         $this->display();
     }
 
@@ -250,7 +253,7 @@ class wechat extends control
     public function commitMenu($public)
     {
         $this->setApi($public);
-        $menu = $this->wechat->getMenu($public);
+        $menu   = $this->wechat->getMenu($public);
         $result = $this->api->commitMenu($menu);
         if($result['result'] == 'success') $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess));
         $this->send($result);
@@ -334,8 +337,10 @@ class wechat extends control
             $this->send(array('result' => 'fail', 'message' => $return['message']));
         }
 
-        $this->view->qrcodeURL = $qrcodeURL;
-        $this->view->public    = $public;
+        $this->view->title      = "<i class='icon-paper-clip'></i> " . $this->lang->wechat->qrcode;
+        $this->view->modalWidth = 1000;
+        $this->view->qrcodeURL  = $qrcodeURL;
+        $this->view->public     = $public;
         $this->display();
     }
 }

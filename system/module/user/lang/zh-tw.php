@@ -2,8 +2,8 @@
 /**
  * The user module zh-tw file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青島息壤網絡信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     user
  * @version     $Id: zh-tw.php 824 2010-05-02 15:32:06Z wwccss $
@@ -36,7 +36,7 @@ $lang->user->zipcode   = '郵編';
 $lang->user->join      = '註冊日期';
 $lang->user->visits    = '訪問次數';
 $lang->user->ip        = '最後IP';
-$lang->user->last      = '上次登錄';
+$lang->user->last      = '最後登錄';
 $lang->user->allowTime = '開放時間';
 $lang->user->status    = '狀態';
 $lang->user->alert     = '您的帳號已被禁用';
@@ -60,7 +60,7 @@ $lang->user->goback          = "返回前一頁";
 $lang->user->allUsers        = '全部用戶';
 $lang->user->submit          = "提交";
 $lang->user->forbid          = '禁用';
-$lang->user->activate        = '解除禁用';
+$lang->user->activate        = '解禁';
 $lang->user->pullWechatFans  = '更新微信會員數據';
 
 $lang->user->profile     = '個人信息';
@@ -134,17 +134,23 @@ $lang->user->resetmail->reset    = '重置碼：';
 $lang->user->oauth = new stdclass();
 $lang->user->oauth->common       = '開放登錄';
 $lang->user->oauth->provider     = '服務商';
-$lang->user->oauth->clientID     = 'App Key';
-$lang->user->oauth->clientSecret = 'App Secret';
 $lang->user->oauth->verification = '網站驗證';
 $lang->user->oauth->widget       = '網頁組件';
+
+$lang->user->oauth->sina = new stdclass();
+$lang->user->oauth->sina->clientID     = 'App Key';
+$lang->user->oauth->sina->clientSecret = 'App Secret';
+
+$lang->user->oauth->qq = new stdclass();
+$lang->user->oauth->qq->clientID     = 'APP ID';
+$lang->user->oauth->qq->clientSecret = 'APP KEY';
 
 $lang->user->oauth->providers['sina'] = '新浪微博';
 $lang->user->oauth->providers['qq']   = 'QQ';
 
 $lang->user->oauth->lblWelcome    = '開放登錄，快捷方便';
-$lang->user->oauth->lblProfile    = "<h3>設置用戶名，完成註冊</h3>";
-$lang->user->oauth->lblBind       = "<h3>或綁定已有帳號</h3>";
+$lang->user->oauth->lblProfile    = "設置用戶名，完成註冊";
+$lang->user->oauth->lblBind       = "或綁定已有帳號";
 $lang->user->oauth->lblBindFailed = "綁定賬戶失敗！";
 
 $lang->user->statusList = new stdclass();

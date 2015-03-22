@@ -2,8 +2,8 @@
 /**
  * The tree category zh-tw file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青島息壤網絡信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     tree
  * @version     $Id$
@@ -17,16 +17,20 @@ $lang->tree->browse      = "類目維護";
 $lang->tree->manage      = "維護類目";
 $lang->tree->fix         = "修復數據";
 
-$lang->tree->common        = '類目';
-$lang->tree->noCategories  = '您還沒有添加類目，請添加類目。';
-$lang->tree->timeCountDown = "<strong id='countDown'>3</strong> 秒後轉向類目管理頁面。";
-$lang->tree->redirect      = '立即轉向';
-$lang->tree->aliasRepeat   = '別名: %s 已經存在,不能重複添加。';
-$lang->tree->aliasConflict = '別名: %s 與系統模組衝突，不能添加。';
-$lang->tree->aliasNumber   = '別名不能為數字。';
-$lang->tree->hasChildren   = '該板塊存在子版塊，不能刪除。';
-$lang->tree->confirmDelete = "您確定刪除該類目嗎？";
-$lang->tree->successFixed  = "成功修復";
+$lang->tree->common           = '類目';
+$lang->tree->noCategories     = '您還沒有添加類目，請添加類目。';
+$lang->tree->timeCountDown    = "<strong id='countDown'>3</strong> 秒後轉向類目管理頁面。";
+$lang->tree->redirect         = '立即轉向';
+$lang->tree->aliasRepeat      = '別名: %s 已經存在,不能重複添加。';
+$lang->tree->aliasConflict    = '別名: %s 與系統模組衝突，不能添加。';
+$lang->tree->aliasNumber      = '別名不能為數字。';
+$lang->tree->hasChildren      = '該板塊存在子版塊，不能刪除。';
+$lang->tree->confirmDelete    = "您確定刪除該類目嗎？";
+$lang->tree->successFixed     = "成功修復";
+$lang->tree->browseByCategory = '類目瀏覽';
+
+$lang->tree->placeholder = new stdclass();
+$lang->tree->placeholder->link = '輸入連結，可以是站外連結';
 
 /* Lang items for article, products. */
 $lang->category = new stdclass();
@@ -37,6 +41,8 @@ $lang->category->parent   = '上級類目';
 $lang->category->desc     = '描述';
 $lang->category->keywords = '關鍵詞';
 $lang->category->children = "子類目";
+$lang->category->isLink   = '跳轉';
+$lang->category->link     = '連結';
 
 /* Lang items for forum. */
 $lang->board = new stdclass();
@@ -49,6 +55,8 @@ $lang->board->keywords   = '關鍵詞';
 $lang->board->children   = "子版塊";
 $lang->board->readonly   = '訪問權限';
 $lang->board->moderators = '版主';
+$lang->board->isLink     = '跳轉';
+$lang->board->link       = '連結';
 
 $lang->board->readonlyList[0] = '開放';
 $lang->board->readonlyList[1] = '只讀';

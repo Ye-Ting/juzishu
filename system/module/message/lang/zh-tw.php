@@ -2,8 +2,8 @@
 /**
  * The message module zh-tw file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青島息壤網絡信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     message
  * @version     $Id$
@@ -25,8 +25,9 @@ $lang->message->list              = '留言列表';
 $lang->message->post              = '發表留言';
 $lang->message->viewArticle       = '正文';
 $lang->message->viewComment       = '留言';
-$lang->message->thanks            = '感謝您的留言！';
+$lang->message->thanks            = '感謝您的留言，通過審核之後才會顯示！';
 $lang->message->noSelectedMessage = '您沒有選擇任何留言。';
+$lang->message->needCheck         = '留言通過審核之後才會顯示。';
 
 $lang->message->pass           = '通過';
 $lang->message->reply          = '回覆';
@@ -52,20 +53,22 @@ $lang->message->readedStatus[0] = '未讀';
 $lang->message->readedStatus[1] = '已讀';
 
 $lang->comment = new stdclass();
-$lang->comment->common      = '評論';
-$lang->comment->id          = '編號';
-$lang->comment->type        = '類型';
-$lang->comment->from        = '稱呼';
-$lang->comment->content     = '內容';
-$lang->comment->phone       = '電話';
-$lang->comment->qq          = 'QQ';
-$lang->comment->email       = '郵箱';
-$lang->comment->captcha     = '驗證碼';
-$lang->comment->list        = '評論列表';
-$lang->comment->post        = '發表評論';
-$lang->comment->viewArticle = '正文';
-$lang->comment->viewComment = '評論';
-$lang->comment->thanks      = '感謝您的評論！';
+$lang->comment->common       = '評論';
+$lang->comment->id           = '編號';
+$lang->comment->type         = '類型';
+$lang->comment->from         = '稱呼';
+$lang->comment->content      = '內容';
+$lang->comment->phone        = '電話';
+$lang->comment->qq           = 'QQ';
+$lang->comment->email        = '郵箱';
+$lang->comment->captcha      = '驗證碼';
+$lang->comment->list         = '評論列表';
+$lang->comment->post         = '發表評論';
+$lang->comment->viewArticle  = '正文';
+$lang->comment->viewComment  = '評論';
+$lang->comment->thanks       = '感謝您的評論，通過審核之後才會顯示！';
+$lang->comment->needCheck    = '評論通過審核之後才會顯示。';
+$lang->comment->receiveEmail = '接收郵件提醒';
 
 $lang->comment->pass          = '通過';
 $lang->comment->reply         = '回覆';
@@ -86,7 +89,8 @@ $lang->comment->confirmPassPre      = '您確定要通過之前的評論嗎？';
 $lang->comment->statusList[0] = '未審核';
 $lang->comment->statusList[1] = '已審核';
 
-$lang->message->replyItem = "<dd><strong>%s</strong> 于 <em>%s</em> 回覆：%s</dd>";
-$lang->comment->replyItem = "<dd><strong>%s</strong> 于 <em>%s</em> 回覆：%s</dd>";
+$lang->message->replyItem   = "<dd><strong>%s</strong> 于 <em>%s</em> 回覆：%s</dd>";
+$lang->comment->replyItem   = "<dd><strong>%s</strong> 于 <em>%s</em> 回覆：%s</dd>";
+$lang->message->messageItem = "<dd><strong>%s</strong> 于 <em>%s</em> 發表：%s</dd>";
 
 $lang->message->replySubject = '%s管理員的回覆';

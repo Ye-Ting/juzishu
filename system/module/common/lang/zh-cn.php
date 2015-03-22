@@ -2,8 +2,8 @@
 /**
  * The common simplified chinese file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     chanzhiEPS
  * @version     $Id$
@@ -21,25 +21,12 @@ $lang->divider    = "<span class='divider'>{$lang->raquo}</span> ";
 $lang->back2Top   = '返回顶部';
 
 /* Lang items for xirang. */
-$lang->chanzhiEPS       = '蝉知企业门户系统';
-$lang->chanzhiEPSx      = '蝉知';
-$lang->agreement        = "已阅读并同意<a href='http://api.chanzhi.org/goto.php?item=license' target='_blank'>《蝉知企业门户系统使用协议》</a>";
-$lang->poweredBy        = " <span id='poweredBy'><a href='http://www.chanzhi.org/?v=%s' target='_blank' title='%s'>{$lang->chanzhiEPSx} %s</a></span>";
-$lang->newVersion       = "提示：蝉知系统已于 <span id='releaseDate'></span> 发布 <span id='version'></span>版本。<a href='' target='_blank' id='upgradeLink'>马上下载</a>";
-
-/* IE6 alert.  */
-$lang->IE6Alert= <<<EOT
-    <div class='alert alert-danger' style='margin-top:100px;'>
-      <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
-      <h2>请使用其他浏览器访问本站。</h2>
-      <p>珍爱上网，远离IE！</p>
-      <p>我们检测到您正在使用Internet Explorer 6 ——  IE6 浏览器, IE6 于2001年8月27日推出，而现在它已十分脱节。速度慢、不安全、不能很好的展示新一代网站。<br/></p>
-      <a href='https://www.google.com/intl/zh-hk/chrome/browser/' class='btn btn-primary btn-lg' target='_blank'>谷歌浏览器</a>
-      <a href='http://www.firefox.com/' class='btn btn-primary btn-lg' target='_blank'>火狐浏览器</a>
-      <a href='http://www.opera.com/download' class='btn btn-primary btn-lg' target='_blank'>Opera浏览器</a>
-      <p></p>
-    </div>
-EOT;
+$lang->chanzhiEPS     = '蝉知企业门户系统';
+$lang->chanzhiEPSx    = '蝉知';
+$lang->agreement      = "已阅读并同意<a href='http://zpl.pub/page/zplv11.html' target='_blank'>《Z PUBLIC LICENSE授权协议1.1》</a>。<span class='text-danger'>未经许可，不得去除、隐藏或遮掩蝉知系统的任何标志及链接。</span>";
+$lang->poweredBy      = " <span id='poweredBy'><a href='http://www.chanzhi.org/?v=%s' target='_blank' title='%s'>%s</a></span>";
+$lang->poweredByAdmin = "<span id='poweredBy'>由 <a href='http://www.chanzhi.org/?v=%s' target='_blank' title='%s'>蝉知企业门户系统 %s</a> 强力驱动！</span>";
+$lang->newVersion     = "提示：蝉知系统已于 <span id='releaseDate'></span> 发布 <span id='version'></span>版本。<a href='' target='_blank' id='upgradeLink'>马上下载</a>";
 
 /* Global lang items. */
 $lang->home           = '首页';
@@ -89,6 +76,11 @@ $lang->fail           = '失败';
 $lang->noResultsMatch = '没有匹配的选项';
 $lang->alias          = '搜索引擎优化使用，可使用英文或数字';
 
+$lang->setOkFile = <<<EOT
+<h5>请按照下面的步骤操作以确认您的管理员身份。</h5>
+<p>创建 %s 文件。如果存在该文件，使用编辑软件打开，重新保存一遍。</p>
+EOT;
+
 /* Items for javascript. */
 $lang->js = new stdclass();
 $lang->js->confirmDelete = '您确定要执行删除操作吗？';
@@ -109,6 +101,7 @@ $lang->company->qq        = 'QQ';
 $lang->company->weibo     = '微博';
 $lang->company->weixin    = '微信';
 $lang->company->wangwang  = '旺旺';
+$lang->company->site      = '网址';
 
 /* Sitemap settings. */
 $lang->sitemap = new stdclass();
@@ -117,10 +110,10 @@ $lang->sitemap->common = '站点地图';
 /* The main menus. */
 $lang->menu = new stdclass();
 $lang->menu->admin    = '首页|admin|index|';
-$lang->menu->blog     = '博客|article|admin|type=blog';
-$lang->menu->product  = '活动|product|admin|';
-$lang->menu->book     = '手册|book|admin|';
 $lang->menu->article  = '文章|article|admin|';
+$lang->menu->blog     = '博客|article|admin|type=blog';
+$lang->menu->product  = '产品|product|admin|';
+$lang->menu->book     = '手册|book|admin|';
 $lang->menu->page     = '单页|article|admin|type=page';
 $lang->menu->forum    = '论坛|forum|admin|';
 $lang->menu->site     = '站点|site|setbasic|';
@@ -128,6 +121,7 @@ $lang->menu->ui       = '界面|ui|setlogo|';
 $lang->menu->company  = '公司|company|setbasic|';
 $lang->menu->user     = '会员|user|admin|';
 $lang->menu->feedback = '反馈|message|admin|';
+$lang->menu->package  = '扩展|package|browse|';
 
 /* Menu groups setting. */
 $lang->menuGroups = new stdclass();
@@ -144,14 +138,12 @@ $lang->menuGroups->message = 'feedback';
 /* Menu of article module. */
 $lang->article = new stdclass();
 $lang->article->menu = new stdclass();
-$lang->article->menu->browse = array('link' => '文章列表|article|admin|', 'alias' => 'create, edit');
-$lang->article->menu->tree   = '类目管理|tree|browse|type=article';
+$lang->article->menu->browse = '所有文章|article|admin|';
 
 /* Menu of blog module. */
 $lang->blog = new stdclass();
 $lang->blog->menu = new stdclass();
-$lang->blog->menu->browse = array('link' => '博客列表|article|admin|type=blog', 'alias' => 'create, edit');
-$lang->blog->menu->tree   = '类目管理|tree|browse|type=blog';
+$lang->blog->menu->browse = '所有博客|article|admin|type=blog';
 
 /* Menu of page module. */
 $lang->page = new stdclass();
@@ -162,19 +154,19 @@ $lang->page->menu->create = '添加单页|article|create|type=page';
 /* Menu of product module. */
 $lang->product = new stdclass();
 $lang->product->menu = new stdclass();
-$lang->product->menu->browse = array('link' => '活动列表|product|admin|', 'alias' => 'create, edit');
-$lang->product->menu->tree   = '类目管理|tree|browse|type=product';
+$lang->product->menu->browse = array('link' => '所有产品|product|admin|', 'alias' => 'create, edit');
 
 /* Menu of UI module. */
 $lang->ui = new stdclass();
 $lang->ui->menu = new stdclass();
-$lang->ui->menu->logo    = 'LOGO设置|ui|setlogo|';
+$lang->ui->menu->logo    = 'Logo设置|ui|setlogo|';
 $lang->ui->menu->favicon = '网站图标|ui|setfavicon|';
-$lang->ui->menu->theme   = '主题风格|ui|settheme|';
 $lang->ui->menu->slide   = array('link' => '幻灯片设置|slide|admin|', 'alias' => 'create,edit');
 $lang->ui->menu->voice   = array('link'=> '一句话管理|voice|admin|','alias'=>'create,edit');
+$lang->ui->menu->theme   = '模板设置|ui|settemplate|';
 $lang->ui->menu->admin   = array('link' => '区块管理|block|admin|', 'alias' => 'create,edit');
 $lang->ui->menu->pages   = array('link' => '布局设置|block|pages|', 'alias' => 'setregion');
+$lang->ui->menu->styles  = '全局样式|ui|setbasestyle|';
 
 /* Menu of user module. */
 $lang->user = new stdclass();
@@ -183,12 +175,14 @@ $lang->user->menu->all    = '全部会员|user|admin|';
 $lang->user->menu->sina   = '微博会员|user|admin|provider=sina';
 $lang->user->menu->wechat = '微信会员|user|admin|provider=wechat';
 $lang->user->menu->qq     = 'QQ会员|user|admin|provider=qq';
+$lang->user->menu->admin  = '管理员|user|admin|admin=1';
 
 /* Menu of comment module. */
 $lang->feedback = new stdclass();
 $lang->feedback->menu = new stdclass();
 $lang->feedback->menu->message = '留言|message|admin|type=message';
 $lang->feedback->menu->comment = '评论|message|admin|type=comment';
+$lang->feedback->menu->answer  = '回复|message|admin|type=reply';
 $lang->feedback->menu->thread  = '主题|forum|admin|tab=feedback';
 $lang->feedback->menu->reply   = '回帖|reply|admin|order=id_desc&tab=feedback';
 $lang->feedback->menu->wechat  = '微信|wechat|message|mode=replied&replied=0';
@@ -207,13 +201,16 @@ $lang->forum->menu->update = '更新数据|forum|update|';
 /* Menu of site module. */
 $lang->site = new stdclass();
 $lang->site->menu = new stdclass();
-$lang->site->menu->basic     = '站点设置|site|setbasic|';
-$lang->site->menu->nav       = '导航设置|nav|admin|';
-$lang->site->menu->tag       = '关键词设置|tag|admin|';
-$lang->site->menu->oauth     = '开放登录|site|setoauth|';
-$lang->site->menu->link      = '友情链接|links|admin|';
-$lang->site->menu->mail      = array('link' => '发信设置|mail|admin|', 'alias' => 'detect,edit,save,test');
-$lang->site->menu->wechat    = array('link' => '微信设置|wechat|admin|', 'alias' => 'create, edit, adminresponse');
+$lang->site->menu->basic    = '站点设置|site|setbasic|';
+$lang->site->menu->lang     = '语言设置|site|setlang|';
+$lang->site->menu->nav      = '导航设置|nav|admin|';
+$lang->site->menu->upload   = '上传设置|site|setupload|';
+$lang->site->menu->tag      = '关键词设置|tag|admin|';
+#$lang->site->menu->robots   = 'Robots|site|setrobots|';
+$lang->site->menu->oauth    = '开放登录|site|setoauth|';
+$lang->site->menu->link     = '友情链接|links|admin|';
+$lang->site->menu->mail     = array('link' => '发信设置|mail|admin|', 'alias' => 'detect,edit,save,test');
+$lang->site->menu->wechat   = array('link' => '微信设置|wechat|admin|', 'alias' => 'create, edit, adminresponse');
 
 /* Menu of company module. */
 $lang->company->menu = new stdclass();
@@ -248,10 +245,6 @@ $lang->nav->menu = $lang->site->menu;
 $lang->slide = new stdclass();
 $lang->slide->menu = $lang->ui->menu;
 
-/* Menu of voice module. */
-$lang->voice = new stdclass();
-$lang->voice->menu = $lang->ui->menu;
-
 /* Menu of block module. */
 $lang->block = new stdclass();
 $lang->block->menu = $lang->ui->menu;
@@ -259,6 +252,9 @@ $lang->block->menu = $lang->ui->menu;
 /* Menu of tree module. */
 $lang->links = new stdclass();
 $lang->links->menu = $lang->site->menu;
+
+/* Menu of package module. */
+$lang->package = new stdclass();
 
 /* The error messages. */
 $lang->error = new stdclass();
@@ -286,13 +282,14 @@ $lang->error->token        = '必须为英文或数字，长度为3-32字符！'
 
 /* The pager items. */
 $lang->pager = new stdclass();
-$lang->pager->noRecord  = '暂时没有记录。';
-$lang->pager->digest    = '共 <strong>%s</strong> 条记录，每页 <strong>%s</strong> 条，页面：<strong>%s/%s</strong> ';
-$lang->pager->first     = '首页';
-$lang->pager->pre       = '上页';
-$lang->pager->next      = '下页';
-$lang->pager->last      = '末页';
-$lang->pager->locate    = 'Go!';
+$lang->pager->noRecord   = "暂时没有记录";
+$lang->pager->digest     = "共 <strong>%s</strong> 条记录，%s <strong>%s/%s</strong> &nbsp; ";
+$lang->pager->recPerPage = "每页 <strong>%s</strong> 条";
+$lang->pager->first      = "<i class='icon-step-backward' title='首页'></i>";
+$lang->pager->pre        = "<i class='icon-play icon-rotate-180' title='上一页'></i>";
+$lang->pager->next       = "<i class='icon-play' title='下一页'></i>";
+$lang->pager->last       = "<i class='icon-step-forward' title='末页'></i>";
+$lang->pager->locate     = "GO!";
 
 $lang->date = new stdclass();
 $lang->date->minute = '分钟';

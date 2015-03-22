@@ -2,8 +2,8 @@
 /**
  * The model file of book module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Tingting Dai <daitingting@xirangit.com>
  * @package     book
  * @version     $Id$
@@ -136,7 +136,7 @@ class bookModel extends model
      */
     public function getAdminCatalog($nodeID, $serials)
     {
-        static $catalog = '';
+        $catalog = '';
         
         $node = $this->getNodeByID($nodeID);
         if(!$node) return $catalog;
@@ -144,26 +144,55 @@ class bookModel extends model
         $children = $this->getChildren($nodeID);
         if($node->type != 'book') $serial = $serials[$nodeID];
 
+        $anchor      = "name='node{$node->id}' id='node{$node->id}'";
         $titleLink   = $node->type == 'book' ? $node->title : html::a(helper::createLink('book', 'admin', "bookID=$node->id"), $node->title);
-        $editLink    = html::a(helper::createLink('book', 'edit', "nodeID=$node->id"), $this->lang->edit);
+        $editLink    = html::a(helper::createLink('book', 'edit', "nodeID=$node->id"), $this->lang->edit, $anchor);
         $delLink     = empty($children) ? html::a(helper::createLink('book', 'delete', "bookID=$node->id"), $this->lang->delete, "class='deleter'") : '';
-        $filesLink   = html::a(helper::createLink('file', 'browse', "objectType=book&objectID=$node->id"), $this->lang->book->files, "data-toggle='modal' data-width='1000'");
+        $filesLink   = html::a(helper::createLink('file', 'browse', "objectType=book&objectID=$node->id&isImage=0"), $this->lang->book->files, "data-toggle='modal' data-width='1000'");
+        $imagesLink  = html::a(helper::createLink('file', 'browse', "objectType=book&objectID=$node->id&isImage=1"), $this->lang->book->images, "data-toggle='modal' data-width='1000'");
         $catalogLink = html::a(helper::createLink('book', 'catalog', "nodeID=$node->id"), $this->lang->book->catalog);
-        $upLink      = html::a(helper::createLink('book', 'up', "nodeID=$node->id"), "<i class='icon-arrow-up'></i>", "class='sort'");
-        $downLink    = html::a(helper::createLink('book', 'down', "nodeID=$node->id"), "<i class='icon-arrow-down'></i>", "class='sort'");
+        $moveLink    = html::a('javascript:;', "<i class='icon-move'></i>", "class='sort sort-handle'");
 
-        if($node->type == 'book')    $catalog .= "<dt class='book'><strong>" . $titleLink . '</strong><span class="actions">' . $editLink . $catalogLink . $delLink . '</span></dt>';
-        if($node->type == 'chapter') $catalog .= "<dd class='catalog chapter'><strong><span class='order'>" . $serial . '</span>&nbsp;' . $titleLink . '</strong><span class="actions">' . $editLink . $catalogLink . $delLink . $upLink . $downLink . '</span></dd>';
-        if($node->type == 'article') $catalog .= "<dd class='catalog article'><strong><span class='order'>" . $serial . '</span>&nbsp;' . $node->title . '</strong><span class="actions">' . $editLink . $filesLink . $delLink . $upLink . $downLink . '</span></dd>';
-
+        $childrenHtml = '';
         if($children) 
         {
-            $catalog .= '<dl>';
-            foreach($children as $child) $this->getAdminCatalog($child->id, $serials);
-            $catalog .= '</dl>';
+            $childrenHtml .= '<dl>';
+            foreach($children as $child) $childrenHtml .=  $this->getAdminCatalog($child->id, $serials);
+            $childrenHtml .= '</dl>';
         }
 
+        if($node->type == 'book')    $catalog .= "<dt class='book' data-id='" . $node->id . "'><strong>" . $titleLink . '</strong><span class="actions">' . $editLink . $catalogLink . $delLink . '</span></dt>' . $childrenHtml;
+        if($node->type == 'chapter') $catalog .= "<dd class='catalog chapter' data-id='" . $node->id . "'><strong><span class='order'>" . $serial . '</span>&nbsp;' . $titleLink . '</strong><span class="actions">' . $editLink . $catalogLink . $delLink . $moveLink . '</span>' . $childrenHtml . '</dd>';
+        if($node->type == 'article') $catalog .= "<dd class='catalog article' data-id='" . $node->id . "'><strong><span class='order'>" . $serial . '</span>&nbsp;' . $node->title . '</strong><span class="actions">' . $editLink . $filesLink . $imagesLink . $delLink . $moveLink . '</span>' . $childrenHtml . '</dd>';
+
         return $catalog;
+    }
+
+    /**
+     * Get article id list of string.
+     * 
+     * @param  int    $nodeID 
+     * @access public
+     * @return string
+     */
+    public function getArticleIDs($nodeID)
+    {
+        $node = $this->getNodeByID($nodeID);
+        if(!$node) return '';
+
+        if($node->type == 'article') return $node->id;
+
+        $ids      = '';
+        $children = $this->getChildren($nodeID);
+        if(!$children) return '';
+
+        foreach($children as $child)
+        {
+            $result = $this->getArticleIDs($child->id);
+            if(strlen($result) == 0) continue;
+            $ids .= $result . ',';
+        }
+        return trim($ids, ',');
     }
 
     /**
@@ -261,21 +290,15 @@ class bookModel extends model
      */
     public function getPrevAndNext($current)
     {
-       $prev = $this->dao->select('id, title, alias')->from(TABLE_BOOK)
-           ->where('parent')->eq($current->parent)
-           ->andWhere('type')->eq('article')
-           ->andWhere('`order`')->lt($current->order)
-           ->orderBy('`order` desc')
-           ->limit(1)
-           ->fetch();
+        $idList = explode(',', $this->getArticleIDs($current->book->id));
+        $idListFlip = array_flip($idList);
 
-       $next = $this->dao->select('id, title, alias')->from(TABLE_BOOK)
-           ->where('parent')->eq($current->parent)
-           ->andWhere('type')->eq('article')
-           ->andWhere('`order`')->gt($current->order)
-           ->orderBy('`order`')
-           ->limit(1)
-           ->fetch();
+        $currentOrder = isset($idListFlip[$current->id]) ? $idListFlip[$current->id] : -1;
+        $prev = isset($idList[$currentOrder - 1]) ? $idList[$currentOrder - 1] : 0;
+        $next = isset($idList[$currentOrder + 1]) ? $idList[$currentOrder + 1] : 0;
+
+        $prev = $this->dao->select('id, title, alias')->from(TABLE_BOOK)->where('id')->eq($prev)->fetch();
+        $next = $this->dao->select('id, title, alias')->from(TABLE_BOOK)->where('id')->eq($next)->fetch();
 
         return array('prev' => $prev, 'next' => $next);
     }
@@ -697,5 +720,23 @@ class bookModel extends model
         }
 
         return $content;
+    }
+
+    /**
+     * sort books
+     * 
+     * @access public
+     * @return void
+     */
+    public function sort()
+    {
+        $nodes = fixer::input('post')->get();
+        foreach($nodes->sort as $id => $order)
+        {
+            $order = explode('.', $order);
+            $num   = end($order);
+            $this->dao->update(TABLE_BOOK)->set('`order`')->eq($num)->where('id')->eq($id)->exec();
+        }
+        return !dao::isError();
     }
 }

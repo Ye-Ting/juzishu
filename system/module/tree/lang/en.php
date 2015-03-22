@@ -2,8 +2,8 @@
 /**
  * The tree category zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     tree
  * @version     $Id$
@@ -29,6 +29,9 @@ $lang->tree->confirmDelete    = "Are you sure to delete it?";
 $lang->tree->successFixed     = "Successfully fixed.";
 $lang->tree->browseByCategory = 'Browse By Category';
 
+$lang->tree->placeholder = new stdclass();
+$lang->tree->placeholder->link = 'Input link, it may be outer chain.';
+
 /* Lang items for article, products. */
 $lang->category = new stdclass();
 $lang->category->common   = 'Category';
@@ -38,6 +41,8 @@ $lang->category->parent   = 'Parent';
 $lang->category->desc     = 'Description';
 $lang->category->keywords = 'Keyword';
 $lang->category->children = "Children";
+$lang->category->isLink   = 'Locate';
+$lang->category->link     = 'Link';
 
 /* Lang items for forum. */
 $lang->board = new stdclass();
@@ -50,6 +55,8 @@ $lang->board->keywords   = 'Keyword';
 $lang->board->children   = "Children";
 $lang->board->readonly   = 'Readonly';
 $lang->board->moderators = 'Moderators';
+$lang->board->isLink     = 'Locate';
+$lang->board->link       = 'Link';
 
 $lang->board->readonlyList[0] = 'Pulic';
 $lang->board->readonlyList[1] = 'Readonly';

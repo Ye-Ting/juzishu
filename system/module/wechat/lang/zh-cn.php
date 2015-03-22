@@ -2,8 +2,8 @@
 /**
  * The wechat module zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Tingting Dai <daitingting@xirangit.com>
  * @package     wechat
  * @version     $Id$
@@ -118,7 +118,7 @@ $lang->wechat->placeholder->name     = '公众号名称';
 $lang->wechat->placeholder->account  = '请输入gh_xxx 格式的原始ID';
 $lang->wechat->placeholder->token    = '必须为英文或数字，长度为3-32字符';
 
-$lang->wechat->needCertified = "此功能需要公众号认证后使用。";
-$lang->wechat->integrateInfo = "请到微信的公众平台完成接入，以获取appID和appSecret信息。
-                                <a href='http://www.chanzhi.org/book/weixin/90_integrate-weixin.html' target='_blank'>帮助</a>";
-$lang->wechat->integrateDone = "已完成接入";
+$lang->wechat->curlSSLRequired = "微信公众号功能需要curl模块，并支持ssl加密传输。";
+$lang->wechat->needCertified   = "此功能需要公众号认证后使用。";
+$lang->wechat->integrateInfo   = "请到微信的公众平台完成接入，以获取appID和appSecret信息。 <a href='http://api.chanzhi.org/goto.php?item=help_wechat' target='_blank'>帮助</a>";
+$lang->wechat->integrateDone   = "已完成接入";

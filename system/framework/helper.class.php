@@ -66,14 +66,19 @@ class helper
     {
         global $app, $config;
 
+        $clientLang = $app->getClientLang();
+        $lang       = $config->langCode;
+
         /* Set vars and alias. */
         if(!is_array($vars)) parse_str($vars, $vars);
         if(!is_array($alias)) parse_str($alias, $alias);
+        foreach($alias as $key => $value) $alias[$key] = urlencode($value);
         
         /* Seo modules return directly. */
         if(helper::inSeoMode() and method_exists('uri', 'create' . $moduleName . $methodName))
         {
             $link = call_user_func_array('uri::create' . $moduleName . $methodName, array('param'=> $vars, 'alias'=>$alias));
+            if($lang) $link = '/' . $lang . $link;
             if($link) return $link;
         }
         
@@ -107,12 +112,14 @@ class helper
                 foreach($vars as $value) $link .= "{$config->requestFix}$value";
                 $link .= '.' . $viewType;
             }
+            if($lang) $link = '/' . $lang . $link;
         }
         elseif($config->requestType == 'GET')
         {
             $link .= "?{$config->moduleVar}=$moduleName&{$config->methodVar}=$methodName";
             if($viewType != 'html') $link .= "&{$config->viewVar}=" . $viewType;
             foreach($vars as $key => $value) $link .= "&$key=$value";
+            if($lang) $link .= "&{$config->langVar}={$lang}";
         }
 
         return $link;
@@ -196,13 +203,51 @@ class helper
             foreach($extFiles as $extFile)
             {
                 $extLines = trim(file_get_contents($extFile));
-                if(strpos($extLines, '<?php') !== false) $extLines = ltrim($extLines, '<?php');
-                if(strpos($extLines, '?>')    !== false) $extLines = rtrim($extLines, '?>');
+                if(strpos($extLines, '<?php') !== false) $extLines = ltrim($extLines, "<?php");
+                if(strpos($extLines, "?>")    !== false) $extLines = rtrim($extLines, "?>");
                 $modelLines .= $extLines . "\n";
             }
 
             /* Create the merged model file. */
             $modelLines .= "}";
+
+            /* Unset conflic function for model. */
+            preg_match_all('/.* function\s+(\w+)\s*\(.*\)[^\{]*\{/Ui', $modelLines, $functions);
+            $functions = $functions[1];
+            $conflics  = array_count_values($functions);
+            foreach($conflics as $functionName => $count)
+            {
+                if($count <= 1) unset($conflics[$functionName]);
+            }
+            if($conflics)
+            {
+                $modelLines = explode("\n", $modelLines);
+                $startDel   = false;
+                foreach($modelLines as $line => $code)
+                {
+                    if($startDel and preg_match('/.* function\s+(\w+)\s*\(.*\)/Ui', $code)) $startDel = false;
+                    if($startDel)
+                    {
+                        unset($modelLines[$line]);
+                    }
+                    else
+                    {
+                        foreach($conflics as $functionName => $count)
+                        {
+                            if($count <= 1) continue;
+                            if(preg_match('/.* function\s+' . $functionName . '\s*\(.*\)/Ui', $code)) 
+                            {
+                                $conflics[$functionName] = $count - 1;
+                                $startDel = true;
+                                unset($modelLines[$line]);
+                            }
+                        }
+                    }
+                }
+
+                $modelLines = join("\n", $modelLines);
+            }
+
             file_put_contents($mergedModelFile, $modelLines);
 
             return $mergedModelFile;
@@ -373,13 +418,13 @@ class helper
         $items = explode('.', $domain);
         $postfix = str_replace($items[0] . '.', '', $domain);
         if(strpos($config->domainPostfix, "|$postfix|") !== false) return $items[0];
-        
+
         $postfix = str_replace($items[0] . '.' . $items[1] . '.', '', $domain);
         if(strpos($config->domainPostfix, "|$postfix|") !== false) return $items[1];
 
         return $siteCode = $domain;
     }
-    
+
     /**
      * Enhanced substr version: support multibyte languages like Chinese.
      *
@@ -402,11 +447,11 @@ class helper
      *
      * return bool
      */
-     public static function inSeoMode()
-     {
+    public static function inSeoMode()
+    {
         global $config;
         return $config->requestType == 'PATH_INFO' and $config->seoMode;
-     }
+    }
 
     /**
      * Check is ajax request 
@@ -417,6 +462,19 @@ class helper
     public static function isAjaxRequest()
     {
         return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest';
+    }
+
+    /**
+     * Header 301 Moved Permanently.
+     * 
+     * @param  string    $locate 
+     * @access public
+     * @return void
+     */
+    public static function header301($locate)
+    {
+        header('HTTP/1.1 301 Moved Permanently');
+        die(header('Location:' . $locate));
     }
 }
 
@@ -535,6 +593,28 @@ function getWebRoot($full = false)
 }
 
 /**
+ * Get home root.
+ * 
+ * @param  string $langCode 
+ * @access public
+ * @return string
+ */
+function getHomeRoot($langCode = '')
+{
+    global $config;
+
+    $langCode = $langCode == '' ? $config->langCode : $langCode;
+    $defaultLang = isset($config->site->defaultLang) ?  $config->site->defaultLang : $config->default->lang;
+    if($langCode == $config->langsShortcuts[$defaultLang]) return $config->webRoot;
+    $homeRoot = $config->webRoot;
+
+    if($langCode and $config->requestType == 'PATH_INFO') $homeRoot = $config->webRoot . $langCode; 
+    if($langCode and $config->requestType == 'GET')       $homeRoot = $config->webRoot . "?{$config->langVar}=$langCode";
+    return $homeRoot;
+
+}
+
+/**
  * Check admin entry. 
  * 
  * @access public
@@ -571,4 +651,96 @@ function formatTime($time, $format = '')
     $time = str_replace('00:00:00', '', $time);
     if($format) return date($format, strtotime($time));
     return trim($time);
+}
+
+/**
+ * Check curl ssl enabled.
+ * 
+ * @access public
+ * @return void
+ */
+function checkCurlSSL()
+{
+    $version = curl_version();
+    return ($version['features'] & CURL_VERSION_SSL);
+}
+
+/**
+ * When the $var has the $key, return it, esle result one default value.
+ * 
+ * @param  array|object    $var 
+ * @param  string|int      $key 
+ * @param  mixed           $valueWhenNone     value when the key not exits.
+ * @param  mixed           $valueWhenExists   value when the key exits.
+ * @access public
+ * @return void
+ */
+function zget($var, $key, $valueWhenNone = '', $valueWhenExists = '')
+{
+    $var = (array)$var;
+    if(isset($var[$key]))
+    {
+        if($valueWhenExists) return $valueWhenExists;
+        return $var[$key];
+    }
+    if($valueWhenNone) return $valueWhenNone;
+    return $key;
+}
+
+/**
+ * Header lcoation 301. 
+ * 
+ * @param  string    $url 
+ * @access public
+ * @return void
+ */
+function header301($url)
+{
+    header('HTTP/1.1 301 Moved Permanently');
+    die(header('Location:' . $url));
+}
+
+/**
+ * Process evil params.
+ * 
+ * @param  string    $value 
+ * @access public
+ * @return void
+ */
+function processEvil($value)
+{
+    $value       = (string) $value;
+    $evils       = array('eval', 'exec', 'passthru', 'proc_open', 'shell_exec', 'system', '$$');
+    $gibbedEvils = array('e v a l', 'e x e c', ' p a s s t h r u', ' p r o c _ o p e n', 's h e l l _ e x e c', 's y s t e m', '$ $');
+    return str_ireplace($evils, $gibbedEvils, $value);
+}
+
+/**
+ * Process array evils.
+ * 
+ * @param  array    $params 
+ * @access public
+ * @return array
+ */
+function processArrayEvils($params)
+{
+    $params = (array) $params;
+    foreach($params as $item => $values)
+    {
+        if(!is_array($values))
+        {
+            $params[$item] = processEvil($values);
+            if(processEvil($item) != $item) unset($params[$item]);
+        }
+        else
+        {
+            foreach($values as $key => $value)
+            {
+                if(is_array($value)) continue;
+                $params[$item][$key] = processEvil($value);
+                if(processEvil($key) != $key) unset($params[$item][$key]);
+            }
+        }
+    }
+    return $params;
 }

@@ -2,8 +2,8 @@
 /**
  * The control file of file module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     file
  * @version     $Id: control.php 1042 2010-08-19 09:02:39Z yuren_@126.com $
@@ -21,6 +21,7 @@ class file extends control
      */
     public function buildForm($fileCount = 2, $percent = 0.9)
     {
+        if(!$this->file->canUpload()) return;
         $this->view->writeable = $this->file->checkSavePath();
         $this->view->fileCount = $fileCount;
         $this->view->percent   = $percent;
@@ -49,11 +50,14 @@ class file extends control
      */
     public function ajaxUpload($uid)
     {
+        if(RUN_MODE == 'front' and !commonModel::isAvailable('forum')) exit;
+        if(!$this->loadModel('file')->canUpload())  $this->send(array('error' => 1, 'message' => $this->lang->file->uploadForbidden));
         $file = $this->file->getUpload('imgFile');
         $file = $file[0];
         if($file)
         {
             if(!$this->file->checkSavePath()) $this->send(array('error' => 1, 'message' => $this->lang->file->errorUnwritable));
+            if(!in_array(strtolower($file['extension']), $this->config->file->imageExtensions)) $this->send(array('error' => 1, 'message' => $this->lang->fail));
             move_uploaded_file($file['tmpname'], $this->file->savePath . $file['pathname']);
 
             if(in_array(strtolower($file['extension']), $this->config->file->imageExtensions) !== false)
@@ -68,11 +72,11 @@ class file extends control
             $file['addedBy']   = $this->app->user->account;
             $file['addedDate'] = helper::now();
             $file['editor']    = 1;
+            $file['lang']      = 'all';
             unset($file['tmpname']);
             $this->dao->insert(TABLE_FILE)->data($file)->exec();
 
             $_SESSION['album'][$uid][] = $this->dao->lastInsertID();
-
             die(json_encode(array('error' => 0, 'url' => $url)));
         }
     }
@@ -82,15 +86,19 @@ class file extends control
      * 
      * @param  string $objectType 
      * @param  int    $objectID 
+     * @param  bool   $isImage 
      * @access public
      * @return void
      */
-    public function browse($objectType, $objectID)
+    public function browse($objectType, $objectID, $isImage = null)
     {
+        $this->view->title      = "<i class='icon-paper-clip'></i> " . ($isImage ? $this->lang->file->imageList : $this->lang->file->browse);
+        $this->view->modalWidth = 800;
         $this->view->writeable  = $this->file->checkSavePath();
         $this->view->objectType = $objectType;
         $this->view->objectID   = $objectID;
-        $this->view->files      = $this->file->getByObject($objectType, $objectID);
+        $this->view->files      = $this->file->getByObject($objectType, $objectID, $isImage);
+        $this->view->users      = $this->loadModel('user')->getPairs();
         $this->display();
     }
   
@@ -110,9 +118,11 @@ class file extends control
             if(!$this->file->checkSavePath()) $this->send(array('result' => 'fail', 'message' => $this->lang->file->errorUnwritable));
             $this->file->edit($fileID);
             if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
-            $this->send(array('result' => 'success'));
+            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess));
         }
-        $this->view->file = $file;
+        $this->view->title      = $this->lang->file->edit;
+        $this->view->modalWidth = 500;
+        $this->view->file       = $file;
         $this->display();
     }
 
@@ -270,7 +280,8 @@ class file extends control
         if(strpos($fileName, $extension) === false) $fileName .= $extension;
 
         /* urlencode the filename for ie. */
-        if(strpos($this->server->http_user_agent, 'MSIE') !== false) $fileName = urlencode($fileName);
+        $isIE11 = strpos($this->server->http_user_agent, 'Trident') !== false and strpos($this->server->http_user_agent, 'rv:11.0') !== false; 
+        if(strpos($this->server->http_user_agent, 'MSIE') !== false or $isIE11) $fileName = urlencode($fileName);
 
         /* Judge the content type. */
         $mimes = $this->config->file->mimes;
@@ -361,8 +372,13 @@ class file extends control
                 }
                 else
                 {
-                    if(strpos($filename, 'f_') === false) continue;
                     $fileExtension = $this->file->getExtension($file);
+                    if(!in_array($fileExtension, $this->config->file->imageExtensions, true))
+                    {
+                        unset($fileList[$i]);
+                        continue;
+                    }
+
                     $fileList[$i]['is_dir']    = false;
                     $fileList[$i]['has_file']  = false;
                     $fileList[$i]['filesize']  = filesize($file);

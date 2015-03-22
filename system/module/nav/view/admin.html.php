@@ -2,8 +2,8 @@
 /**
  * The browse view file of nav module of XiRangEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     nav
  * @version     $Id$
@@ -16,43 +16,37 @@
   <div class='panel-heading'><strong><i class='icon-location-arrow'></i> <?php echo $lang->nav->setNav;?></strong></div>
   <div class='panel-body'>
     <form class='form-inline' id='navForm' method='post'>
-      <table class='table table-inline'>
-        <tr>
-          <td>  
-            <ul class='navList ulGrade1'>
-              <?php 
-              foreach($navs as $nav)
-              {
-                  echo "<li class='liGrade1'>";
-                  echo $this->nav->createEntry(1, $nav);
-                  if(isset($nav->children))
-                  {
-                      echo "<ul class='ulGrade2 hide'>";
-                      foreach($nav->children as $nav2)
-                      {
-                          echo "<li class='liGrade2'>";
-                          echo $this->nav->createEntry(2, $nav2);
-                          if(isset($nav2->children))
-                          {
-                              echo "<ul class='ulGrade3'>";
-                              foreach($nav2->children as $nav3)
-                              {
-                                  echo  "<li class='liGrade3'>". $this->nav->createEntry(3, $nav3) .'</li>';
-                              }
-                              echo '</ul>';
-                          }
-                          echo '</li>';
-                      }
-                      echo '</ul>';
-                  }
-                  echo '</li>';
-              }
-              ?>
-              <li><?php echo html::a('javascript:;', $lang->save, "class='btn btn-primary submit' onclick='return submitForm()'")?></li>
-            </ul>
-          </td>
-        </tr>
-      </table>
+      <ul class='navList ulGrade1' id='navList'>
+        <?php 
+        foreach($navs as $nav)
+        {
+            echo "<li class='liGrade1'>";
+            echo $this->nav->createEntry(1, $nav);
+            echo "<ul class='ulGrade2 hide'>";
+            if(isset($nav->children))
+            {
+                foreach($nav->children as $nav2)
+                {
+                    echo "<li class='liGrade2'>";
+                    echo $this->nav->createEntry(2, $nav2);
+                    echo "<ul class='ulGrade3'>";
+                    if(isset($nav2->children))
+                    {
+                        foreach($nav2->children as $nav3)
+                        {
+                            echo  "<li class='liGrade3'>". $this->nav->createEntry(3, $nav3) .'</li>';
+                        }
+                    }
+                    echo '</ul>';
+                    echo '</li>';
+                }
+            }
+            echo '</ul>';
+            echo '</li>';
+        }
+        ?>
+      </ul>
+      <div><?php echo html::a('javascript:;', $lang->save, "class='btn btn-primary submit' onclick='return submitForm()'")?></div>
     </form>
   </div>
 </div>
@@ -60,11 +54,15 @@
 <div id='grade1NavSource' class='hide'>
   <li class='liGrade1'>
     <?php echo $this->nav->createEntry(1);?>
+    <ul class='ulGrade2'></ul>
   </li>
 </div>
 <div id='grade2NavSource' class='hide'>
   <ul class='ulGrade2'>
-    <li class='liGrade2'><?php echo $this->nav->createEntry(2);?></li>
+    <li class='liGrade2'>
+      <?php echo $this->nav->createEntry(2);?>
+      <ul class='ulGrade3'></ul>
+    </li>
   </ul>
 </div>
 <div id='grade3NavSource' class='hide'>

@@ -2,8 +2,8 @@
 /**
  * The message module English file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     message
  * @version     $Id$
@@ -53,21 +53,22 @@ $lang->message->readedStatus[0] = 'New';
 $lang->message->readedStatus[1] = 'Readed';
 
 $lang->comment = new stdclass();
-$lang->comment->common      = 'Comment';
-$lang->comment->id          = 'ID';
-$lang->comment->type        = 'Type';
-$lang->comment->from        = 'Name';
-$lang->comment->content     = 'Content';
-$lang->comment->phone       = 'Phone';
-$lang->comment->qq          = 'QQ';
-$lang->comment->email       = 'Email';
-$lang->comment->captcha     = 'Captcha';
-$lang->comment->list        = 'List';
-$lang->comment->post        = 'Post a comment';
-$lang->comment->viewArticle = 'View article';
-$lang->comment->viewComment = 'View comment';
-$lang->comment->thanks      = 'Thanks for your comment, it will display after approved!';
-$lang->comment->needCheck   = 'Comment will display after approved.';
+$lang->comment->common       = 'Comment';
+$lang->comment->id           = 'ID';
+$lang->comment->type         = 'Type';
+$lang->comment->from         = 'Name';
+$lang->comment->content      = 'Content';
+$lang->comment->phone        = 'Phone';
+$lang->comment->qq           = 'QQ';
+$lang->comment->email        = 'Email';
+$lang->comment->captcha      = 'Captcha';
+$lang->comment->list         = 'List';
+$lang->comment->post         = 'Post a comment';
+$lang->comment->viewArticle  = 'View article';
+$lang->comment->viewComment  = 'View comment';
+$lang->comment->thanks       = 'Thanks for your comment, it will display after approved!';
+$lang->comment->needCheck    = 'Comment will display after approved.';
+$lang->comment->receiveEmail = 'Receive email reminder.';
 
 $lang->comment->pass          = 'Pass';
 $lang->comment->reply         = 'Reply';
@@ -88,7 +89,8 @@ $lang->comment->confirmPassPre      = 'Are you sure to pass comment previous?';
 $lang->comment->statusList[0] = 'Unreviewed';
 $lang->comment->statusList[1] = 'Reviewed';
 
-$lang->message->replyItem = "<dd><strong>%s</strong> reply at <em>%s</em>：%s</dd>";
-$lang->comment->replyItem = "<dd><strong>%s</strong> reply at <em>%s</em>：%s</dd>";
+$lang->message->replyItem   = "<dd><strong>%s</strong> reply at <em>%s</em>：%s</dd>";
+$lang->comment->replyItem   = "<dd><strong>%s</strong> reply at <em>%s</em>：%s</dd>";
+$lang->message->messageItem = "<dd><strong>%s</strong> comment at <em>%s</em>：%s</dd>";
 
 $lang->message->replySubject = 'Reply from administrator of %s';

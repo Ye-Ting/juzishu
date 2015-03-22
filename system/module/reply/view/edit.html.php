@@ -2,8 +2,8 @@
 /**
  * The edit reply view file of block module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     block
  * @version     $Id$
@@ -20,7 +20,7 @@
     <form method='post' class='form-horizontal' id='editForm' enctype='multipart/form-data'>
       <div class='form-group'>
         <label class='col-md-1 col-sm-2 control-label'><?php echo $lang->reply->content;?></label>
-        <div class='col-md-11 col-sm-10'><?php echo html::textarea('content', $reply->content, "rows='15' class='form-control'");?></div>
+        <div class='col-md-11 col-sm-10'><?php echo html::textarea('content', htmlspecialchars($reply->content), "rows='15' class='form-control'");?></div>
       </div>
       <div class='form-group'>
         <label class='col-md-1 col-sm-2 control-label'><?php echo $lang->thread->file;?></label>

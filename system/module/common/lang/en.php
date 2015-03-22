@@ -2,8 +2,8 @@
 /**
  * The common simplified chinese file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     chanzhiEPS
  * @version     $Id$
@@ -21,25 +21,12 @@ $lang->divider    = "<span class='divider'>{$lang->raquo}</span> ";
 $lang->back2Top   = 'T<br/>O<br/>P';
 
 /* Lang items for xirang. */
-$lang->chanzhiEPS       = 'chanzhiEPS';
-$lang->chanzhiEPSx      = 'Chanzhi';
-$lang->agreement        = "Agree to the <a href='http://api.chanzhi.org/goto.php?item=license' target='_blank'>《ChanzhiEPS Service Agreement》</a>";
-$lang->poweredBy        = " <span id='poweredBy'><a href='http://www.chanzhi.org/?v=%s' target='_blank' title='%s'>{$lang->chanzhiEPSx} %s</a></span>";
-$lang->newVersion       = "Notice: ChanzhiEPS has been upgraded to version: <span id='version'></span> at <span id='releaseDate'></span>. <a href='' target='_blank' id='upgradeLink'>DownLoad Now</a>";
-
-/* IE6 alert.  */
-$lang->IE6Alert= <<<EOT
-    <div class='alert alert-danger' style='margin-top:100px;'>
-      <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
-      <h2>Please use IE(>8), firefox, chrome, safari, opera to visit this site.</h2>
-      <p>Stop using IE6!</p>
-      <p>IE6 is too old, we should stop using it. <br/></p>
-      <a href='https://www.google.com/intl/zh-hk/chrome/browser/' class='btn btn-primary btn-lg' target='_blank'>Chrome</a>
-      <a href='http://www.firefox.com/' class='btn btn-primary btn-lg' target='_blank'>Firefox</a>
-      <a href='http://www.opera.com/download' class='btn btn-primary btn-lg' target='_blank'>Opera</a>
-      <p></p>
-    </div>
-EOT;
+$lang->chanzhiEPS     = 'chanzhiEPS';
+$lang->chanzhiEPSx    = 'Chanzhi';
+$lang->agreement      = "I Agree to the <a href='http://zpl.pub/page/zplv11.html' target='_blank'>Z PUBLIC LICENSE 1.1</a>, <span class='text-danger'>and promise to keep the logo, link of ChanZhi.</span>";
+$lang->poweredBy      = " <span id='poweredBy'><a href='http://www.chanzhi.org/?v=%s' target='_blank' title='%s'>%s</a></span>";
+$lang->poweredByAdmin = "<span id='poweredBy'>Powered by <a href='http://www.chanzhi.org/?v=%s' target='_blank' title='%s'>ChanzhiEPS %s</a></span>";
+$lang->newVersion     = "Notice: ChanzhiEPS has been upgraded to version: <span id='version'></span> at <span id='releaseDate'></span>. <a href='' target='_blank' id='upgradeLink'>DownLoad Now</a>";
 
 /* Global lang items. */
 $lang->home           = 'Home';
@@ -87,7 +74,12 @@ $lang->sendSuccess    = 'Successfully sended.';
 $lang->deleteSuccess  = 'Successfully deleted.';
 $lang->fail           = 'Failed';
 $lang->noResultsMatch = 'No matched results.';
-$lang->alias          = 'For SEO, could be numbers, letters or words';
+$lang->alias          = 'For SEO, could be numbers, words enclosed by ".';
+
+$lang->setOkFile = <<<EOT
+<h5>For security reason, please do these steps. </h5>
+<p>Create %s file. If this file exists already, reopen it and save again.</p>
+EOT;
 
 /* Items for javascript. */
 $lang->js = new stdclass();
@@ -109,6 +101,7 @@ $lang->company->qq        = 'QQ';
 $lang->company->weibo     = 'Weibo';
 $lang->company->weixin    = 'Wechat';
 $lang->company->wangwang  = 'Wangwang';
+$lang->company->site      = 'Site';
 
 /* Sitemap settings. */
 $lang->sitemap = new stdclass();
@@ -128,6 +121,7 @@ $lang->menu->ui       = 'UI|ui|setlogo|';
 $lang->menu->company  = 'Company|company|setbasic|';
 $lang->menu->user     = 'User|user|admin|';
 $lang->menu->feedback = 'Feedback|message|admin|';
+$lang->menu->package  = 'Extension|package|browse|';
 
 /* Menu groups setting. */
 $lang->menuGroups = new stdclass();
@@ -135,7 +129,7 @@ $lang->menuGroups->tag     = 'site';
 $lang->menuGroups->mail    = 'site';
 $lang->menuGroups->nav     = 'site';
 $lang->menuGroups->links   = 'site';
-$lang->menuGroups->wechat = 'site';
+$lang->menuGroups->wechat  = 'site';
 $lang->menuGroups->block   = 'ui';
 $lang->menuGroups->slide   = 'ui';
 $lang->menuGroups->tree    = 'article';
@@ -144,14 +138,12 @@ $lang->menuGroups->message = 'feedback';
 /* Menu of article module. */
 $lang->article = new stdclass();
 $lang->article->menu = new stdclass();
-$lang->article->menu->browse = array('link' => 'List|article|admin|', 'alias' => 'create, edit');
-$lang->article->menu->tree   = 'Categories|tree|browse|type=article';
+$lang->article->menu->browse = 'All articles|article|admin|';
 
 /* Menu of blog module. */
 $lang->blog = new stdclass();
 $lang->blog->menu = new stdclass();
-$lang->blog->menu->browse = array('link' => 'List|article|admin|type=blog', 'alias' => 'create, edit');
-$lang->blog->menu->tree   = 'Categories|tree|browse|type=blog';
+$lang->blog->menu->browse = 'All blogs|article|admin|type=blog';
 
 /* Menu of page module. */
 $lang->page = new stdclass();
@@ -162,18 +154,18 @@ $lang->page->menu->create = 'Create|article|create|type=page';
 /* Menu of product module. */
 $lang->product = new stdclass();
 $lang->product->menu = new stdclass();
-$lang->product->menu->browse = array('link' => 'List|product|admin|', 'alias' => 'creaet, edit');
-$lang->product->menu->tree   = 'Categories|tree|browse|type=product';
+$lang->product->menu->browse = array('link' => 'All products|product|admin|', 'alias' => 'create, edit');
 
 /* Menu of UI module. */
 $lang->ui = new stdclass();
 $lang->ui->menu = new stdclass();
 $lang->ui->menu->logo    = 'Logo|ui|setlogo|';
 $lang->ui->menu->favicon = 'Favicon|ui|setfavicon|';
-$lang->ui->menu->theme   = 'Theme|ui|settheme|';
 $lang->ui->menu->slide   = array('link' => 'Slide|slide|admin|',  'alias' => 'create,edit');
+$lang->ui->menu->theme   = 'Theme|ui|settemplate|';
 $lang->ui->menu->admin   = array('link' => 'Blocks|block|admin|', 'alias' => 'create,edit');
 $lang->ui->menu->pages   = array('link' => 'Layout|block|pages|', 'alias' => 'setregion');
+$lang->ui->menu->styles  = 'Base Style|ui|setbasestyle|';
 
 /* Menu of user module. */
 $lang->user = new stdclass();
@@ -182,12 +174,14 @@ $lang->user->menu->all    = 'All Users|user|admin|';
 $lang->user->menu->sina   = 'Weibo Users|user|admin|provider=sina';
 $lang->user->menu->wechat = 'Wechat Users|user|admin|provider=wechat';
 $lang->user->menu->qq     = 'QQ Users|user|admin|provider=qq';
+$lang->user->menu->admin  = 'Admin Users|user|admin|admin=1';
 
 /* Menu of comment module. */
 $lang->feedback = new stdclass();
 $lang->feedback->menu = new stdclass();
 $lang->feedback->menu->message = 'Message|message|admin|type=message';
 $lang->feedback->menu->comment = 'Comment|message|admin|type=comment';
+$lang->feedback->menu->answer  = 'Answer|message|admin|type=reply';
 $lang->feedback->menu->thread  = 'Threads|forum|admin|tab=feedback';
 $lang->feedback->menu->reply   = 'Replies|reply|admin|order=id_desc&tab=feedback';
 $lang->feedback->menu->wechat  = 'Wechat|wechat|message|mode=replied&replied=0';
@@ -206,13 +200,16 @@ $lang->forum->menu->update = 'Update|forum|update|';
 /* Menu of site module. */
 $lang->site = new stdclass();
 $lang->site->menu = new stdclass();
-$lang->site->menu->basic     = 'Basic|site|setbasic|';
-$lang->site->menu->nav       = 'Navigation|nav|admin|';
-$lang->site->menu->tag       = 'Tags|tag|admin|';
-$lang->site->menu->oauth     = 'Open OAuth|site|setoauth|';
-$lang->site->menu->link      = 'Links|links|admin|';
-$lang->site->menu->mail      = array('link' => 'Mail|mail|admin|', 'alias' => 'detect,edit,save,test');
-$lang->site->menu->wechat    = array('link' => 'Wechat|wechat|admin|', 'alias' => 'create,setresponse');
+$lang->site->menu->basic    = 'Basic|site|setbasic|';
+$lang->site->menu->lang     = 'Language|site|setlang|';
+$lang->site->menu->nav      = 'Navigation|nav|admin|';
+$lang->site->menu->upload   = 'Uploads|site|setupload|';
+$lang->site->menu->tag      = 'Tags|tag|admin|';
+#$lang->site->menu->robots   = 'Robots|site|setrobots|';
+$lang->site->menu->oauth    = 'Open OAuth|site|setoauth|';
+$lang->site->menu->link     = 'Links|links|admin|';
+$lang->site->menu->mail     = array('link' => 'Mail|mail|admin|', 'alias' => 'detect,edit,save,test');
+$lang->site->menu->wechat   = array('link' => 'Wechat|wechat|admin|', 'alias' => 'create,setresponse');
 
 /* Menu of company module. */
 $lang->company->menu = new stdclass();
@@ -255,6 +252,9 @@ $lang->block->menu = $lang->ui->menu;
 $lang->links = new stdclass();
 $lang->links->menu = $lang->site->menu;
 
+/* Menu of package module. */
+$lang->package = new stdclass();
+
 /* Error info. */
 $lang->error = new stdclass();
 $lang->error->length          = array("<strong>%s</strong>length should be<strong>%s</strong>", "<strong>%s</strong>length should between<strong>%s</strong>and <strong>%s</strong>.");
@@ -281,13 +281,14 @@ $lang->error->token           = 'Should English or numbers, length of 3-32 chara
 
 /* The pager items. */
 $lang->pager = new stdclass();
-$lang->pager->noRecord  = "No records yet.";
-$lang->pager->digest    = "<strong>%s</strong> records, <strong>%s</strong> per page, <strong>%s/%s</strong> ";
-$lang->pager->first     = "First";
-$lang->pager->pre       = "Previous";
-$lang->pager->next      = "Next";
-$lang->pager->last      = "Last";
-$lang->pager->locate    = "GO!";
+$lang->pager->noRecord   = "No records yet.";
+$lang->pager->digest     = "<strong>%s</strong> records, %s <strong>%s/%s</strong> &nbsp; ";
+$lang->pager->recPerPage = "<strong>%s</strong> per page";
+$lang->pager->first      = "<i class='icon-step-backward' title='First'></i>";
+$lang->pager->pre        = "<i class='icon-play icon-rotate-180' title='Previous'></i>";
+$lang->pager->next       = "<i class='icon-play' title='Next'></i>";
+$lang->pager->last       = "<i class='icon-step-forward' title='Last'></i>";
+$lang->pager->locate     = "GO!";
 
 $lang->date = new stdclass();
 $lang->date->minute = 'minute';

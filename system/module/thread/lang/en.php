@@ -2,8 +2,8 @@
 /**
  * The thread module english file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     thread
  * @version     $Id$
@@ -21,6 +21,8 @@ $lang->thread->postedDate = 'Posted date';
 $lang->thread->replies    = 'Replies';
 $lang->thread->views      = 'Views';
 $lang->thread->lastReply  = 'Last reply';
+$lang->thread->isLink     = 'Locate';
+$lang->thread->link       = 'Link';
 
 $lang->thread->post       = 'Post';
 $lang->thread->postTo     = 'Post to';
@@ -50,8 +52,13 @@ $lang->thread->message         = '%s reply at #%s in forum, the thread is: %s, t
 $lang->thread->readonly        = 'Read only';
 $lang->thread->successStick    = 'Successfully sticky.';
 $lang->thread->successUnstick  = 'Successfully unsticky.';
+$lang->thread->successHide     = 'Successfully hide.';
+$lang->thread->successShow     = 'Successfully show.';
 $lang->thread->readonlyMessage = 'The thread has been set <strong>READONLY</strong>，you can not post new reply。';
 $lang->thread->successTransfer = 'Successfully Transfered';
+
+$lang->thread->placeholder = new stdclass();
+$lang->thread->placeholder->link = 'Input link, it can be outer chain.';
 
 /* Adjust the pager. */
 if(!isset($lang->pager->settedInForum))

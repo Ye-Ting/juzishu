@@ -2,8 +2,8 @@
 /**
  * The browse view file of company module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan <guanxiying@xirangit.com>
  * @package     company
  * @version     $Id$
@@ -23,11 +23,11 @@
         </tr>
         <tr>
           <th><?php echo $lang->company->desc;?></th> 
-          <td colspan='2'><?php echo html::textarea('desc',  isset($this->config->company->desc) ? $this->config->company->desc : '', "class='form-control' rows='5'");?></td> 
+          <td colspan='2'><?php echo html::textarea('desc',  isset($this->config->company->desc) ? htmlspecialchars($this->config->company->desc) : '', "class='form-control' rows='5'");?></td> 
         </tr>
         <tr>
           <th><?php echo $lang->company->content;?></th> 
-          <td colspan='2'><?php echo html::textarea('content',  isset($this->config->company->content) ? $this->config->company->content : '', "class='form-control' rows='15'");?></td> 
+          <td colspan='2'><?php echo html::textarea('content',  isset($this->config->company->content) ? htmlspecialchars($this->config->company->content) : '', "class='form-control' rows='15'");?></td> 
         </tr>
         <tr>
           <th></th>

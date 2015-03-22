@@ -2,8 +2,8 @@
 /**
  * The setLink view file of links module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Tingting Dai <daitingting@xirangit.com>
  * @package     links
  * @version     $Id$
@@ -21,11 +21,11 @@
       <table class='table table-form'>
         <tr>
           <th><?php echo $lang->links->index;?></th> 
-          <td><?php echo html::textarea('index', isset($this->config->links->index) ? $this->config->links->index : '', "class='area-1' rows='10'");?></td> 
+          <td><?php echo html::textarea('index', isset($this->config->links->index) ? htmlspecialchars($this->config->links->index) : '', "class='area-1' rows='10'");?></td> 
         </tr>
         <tr>
           <th><?php echo $lang->links->all;?></th> 
-          <td><?php echo html::textarea('all', isset($this->config->links->all) ? $this->config->links->all : '', "class='area-1' rows='10'");?></td> 
+          <td><?php echo html::textarea('all', isset($this->config->links->all) ? htmlspecialchars($this->config->links->all) : '', "class='area-1' rows='10'");?></td> 
         </tr>
         <tr>
           <th></th>

@@ -2,8 +2,8 @@
 /**
  * The control file of book module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Tingting Dai <daitingting@xirangit.com>
  * @package     book
  * @version     $Id$
@@ -148,7 +148,7 @@ class book extends control
 
             /* No error, save to database. */
             $result = $this->book->manageCatalog($node);
-            if($result) $this->send(array('result' => 'success', 'message'=>$this->lang->saveSuccess, 'locate' => $this->post->referer));
+            if($result) $this->send(array('result' => 'success', 'message'=>$this->lang->saveSuccess, 'locate' => $this->post->referer . "#node" . $node));
             $this->send(array('result' => 'fail', 'message' => dao::getError()));
         }
 
@@ -178,7 +178,7 @@ class book extends control
         if($_POST)
         {
             $result = $this->book->update($nodeID);
-            if($result) $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $this->post->referer));
+            if($result) $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $this->post->referer . "#node" . $nodeID));
             $this->send(array('result' => 'fail', 'message' => dao::getError()));
         }
 
@@ -256,5 +256,17 @@ class book extends control
 
         if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
         $this->send(array('result' => 'success'));
+    }
+
+    /**
+     * sort books 
+     * 
+     * @access public
+     * @return void
+     */
+    public function sort()
+    {
+        if($this->book->sort()) $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess));
+        $this->send(array('result' => 'fail', 'message' => dao::getError()));
     }
 }

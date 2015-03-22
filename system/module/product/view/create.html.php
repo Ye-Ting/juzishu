@@ -2,8 +2,8 @@
 /**
  * The create view file of product module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan <guanxiying@xirangit.com>
  * @package     product
  * @version     $Id$
@@ -15,6 +15,7 @@
 <?php include '../../common/view/chosen.html.php';?>
 <?php js::set('key', 1);?>
 <?php js::set('categoryID', $currentCategory);?>
+<?php js::set('currency', $lang->product->currency);?>
 <div class='panel'>
   <div class='panel-heading'>
     <strong><i class="icon-plus"></i> <?php echo $lang->product->create;?></strong>
@@ -28,7 +29,17 @@
         </tr>
         <tr>
           <th><?php echo $lang->product->name;?></th>
-          <td colspan='2'><?php echo html::input('name', '', "class='form-control'");?></td>
+          <td colspan='2'>
+            <div class='row order'>
+              <div class='col-sm-10'><?php echo html::input('name', '', "class='form-control'");?></div>
+              <div class='col-sm-2'>
+                <div class="input-group">
+                  <span class="input-group-addon"><?php echo $lang->product->order;?></span>
+                  <?php echo html::input('order', $order, "class='form-control'");?>
+                </div>
+              </div>
+            </div>
+          </td>
         </tr>
         <tr>
           <th><?php echo $lang->product->alias;?></th>
@@ -49,8 +60,8 @@
           <td colspan='2'><?php echo html::input('keywords', '', "class='form-control'");?></td>
         </tr>
         <tr>
-          <th><?php echo $lang->product->summary;?></th>
-          <td colspan='2'><?php echo html::textarea('summary', '', "rows='2' class='form-control'");?></td>
+          <th><?php echo $lang->product->desc;?></th>
+          <td colspan='2'><?php echo html::textarea('desc', '', "rows='2' class='form-control'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->product->content;?></th>
@@ -59,41 +70,73 @@
         <tr>
           <th rowspan='4'><?php echo $lang->product->attribute?></th>
           <td colspan='2'>
-            <div class="row">
-              <div class='col-sm-2 col-md-1'><?php echo $lang->product->brand;?></div>
-              <div class='col-sm-4 col-md-5'> <?php echo html::input('brand', '', "class='form-control'");?></div>
-              <div class='col-sm-2 col-md-1'><?php echo $lang->product->model;?></div>
-              <div class='col-sm-4 col-md-5'><?php echo html::input('model', '', "class='form-control'");?></div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td colspan='2'>
-            <div class="row">
-              <div class='col-sm-2 col-md-1'><?php echo $lang->product->color;?></div>
-              <div class='col-sm-4 col-md-5'><?php echo html::input('color', '', "class='form-control'");?></div>
-              <div class='col-sm-2 col-md-1'><?php echo $lang->product->amount;?> </div>
-              <div class='col-sm-4 col-md-5'><?php echo html::input('amount', '', "class='form-control'");?></div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td colspan='2'>
-            <div class="row">
-              <div class='col-sm-2 col-md-1'><?php echo $lang->product->origin;?></div>
-              <div class='col-sm-4 col-md-5'><?php echo html::input('origin', '', "class='form-control'");?></div>
-              <div class='col-sm-2 col-md-1'><?php echo $lang->product->unit;?></div>
-              <div class='col-sm-4 col-md-5'><?php echo html::input('unit', '', "class='form-control'");?></div>
+            <div class="row form-group">
+              <div class='col-sm-6 col-md-6'>
+                <div class='input-group'>
+                  <span class='input-group-addon'><?php echo $lang->product->brand;?></span>
+                  <?php echo html::input('brand', '', "class='form-control'");?>
+                </div>
+              </div>
+              <div class='col-sm-6 col-md-6'>
+                <div class='input-group'>
+                  <span class='input-group-addon'><?php echo $lang->product->model;?></span>
+                  <?php echo html::input('model', '', "class='form-control'");?>
+                </div>
+              </div>
             </div>
           </td>
         </tr>
         <tr>
           <td colspan='2'>
             <div class="row form-group">
-              <div class='col-sm-2 col-md-1'><?php echo $lang->product->price;?></div>
-              <div class='col-sm-4 col-md-5'><?php echo html::input('price', '', "class='form-control'");?></div>
-              <div class='col-sm-2 col-md-1'><?php echo $lang->product->promotion;?></div>
-              <div class='col-sm-4 col-md-5'><?php echo html::input('promotion', '', "class='form-control'");?></div>
+              <div class='col-sm-6 col-md-6'>
+                <div class='input-group'>
+                  <span class='input-group-addon'><?php echo $lang->product->color;?></span>
+                  <?php echo html::input('color', '', "class='form-control'");?>
+                </div>
+              </div>
+              <div class='col-sm-6 col-md-6'>
+                <div class='input-group'>
+                  <span class='input-group-addon'><?php echo $lang->product->amount;?></span>
+                  <?php echo html::input('amount', '', "class='form-control'");?>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td colspan='2'>
+            <div class="row form-group">
+              <div class='col-sm-6 col-md-6'>
+                <div class='input-group'>
+                  <span class='input-group-addon'><?php echo $lang->product->origin;?></span>
+                  <?php echo html::input('origin', '', "class='form-control'");?>
+                </div>
+              </div>
+              <div class='col-sm-6 col-md-6'>
+                <div class='input-group'>
+                  <span class='input-group-addon'><?php echo $lang->product->unit;?></span>
+                  <?php echo html::input('unit', '', "class='form-control'");?>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td colspan='2'>
+            <div class="row form-group">
+              <div class='col-sm-6 col-md-6'>
+                <div class='input-group'>
+                  <span class='input-group-addon'><?php echo $lang->product->price;?></span>
+                  <?php echo html::input('price', '', "class='form-control'");?>
+                </div>
+              </div>
+              <div class='col-sm-6 col-md-6'>
+                <div class='input-group'>
+                  <span class='input-group-addon'><?php echo $lang->product->promotion;?></span>
+                  <?php echo html::input('promotion', '', "class='form-control'");?>
+                </div>
+              </div>
             </div>
           </td>
         </tr>
@@ -102,10 +145,12 @@
           <td colspan='2'>
             <div class='row form-group'>
               <div class="col-xs-3"> <?php echo html::input('label[0]', '', "class='form-control' placeholder='{$lang->product->placeholder->label}'" )?></div>
-              <div class="col-xs-8"> <?php echo html::input('value[0]', '', "class='form-control' placeholder='{$lang->product->placeholder->value}'" )?></div>
-              <div class="col-xs-1">
-                <?php echo html::a('javascript:;', "<i class='icon-plus'></i>", "class='btn btn-link pull-left btn-mini btn-add'");?>
-                <?php echo html::a('javascript:;', "<i class='icon-remove'></i>", "class='btn btn-link pull-left btn-mini btn-remove'");?>
+              <div class="col-xs-9">
+                <div class='input-group'>
+                <?php echo html::input('value[0]', '', "class='form-control' placeholder='{$lang->product->placeholder->value}'" )?>
+                <span class='input-group-addon'><i class='icon-plus'></i></span>
+                <span class='input-group-addon'><i class='icon-remove'></i></span>
+                </div>
               </div>
             </div>
           </td>
@@ -116,14 +161,15 @@
         </tr>
       </table>
     </form>
-
     <div class='hide row-custom'>
       <div class='row form-group'>
         <div class="col-xs-3"> <?php echo html::input('label[key]', '', "class='form-control' placeholder='{$lang->product->placeholder->label}'" )?></div>
-        <div class="col-xs-8"> <?php echo html::input('value[key]', '', "class='form-control' placeholder='{$lang->product->placeholder->value}'" )?></div>
-        <div class="col-xs-1">
-          <?php echo html::a('javascript:;', "<i class='icon-plus'></i>", "class='btn btn-link pull-left btn-mini btn-add'");?>
-          <?php echo html::a('javascript:;', "<i class='icon-remove'></i>", "class='btn btn-link pull-left btn-mini btn-remove'");?>
+        <div class="col-xs-9">
+          <div class='input-group'>
+          <?php echo html::input('value[key]', '', "class='form-control' placeholder='{$lang->product->placeholder->value}'" )?>
+          <span class='input-group-addon'><i class='icon-plus'></i></span>
+          <span class='input-group-addon'><i class='icon-remove'></i></span>
+          </div>
         </div>
       </div>
     </div>

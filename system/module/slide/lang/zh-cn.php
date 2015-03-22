@@ -2,8 +2,8 @@
 /**
  * The slide category zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     slide
  * @version     $Id$
@@ -12,11 +12,13 @@
 $lang->slide->common = '幻灯片';
 
 $lang->slide->title      = '标题';
+$lang->slide->titleColor = '标题颜色';
 $lang->slide->image      = '图片';
 $lang->slide->mainLink   = '链接';
 $lang->slide->summary    = '摘要';
 $lang->slide->label      = '按钮文字';
 $lang->slide->button     = '按钮';
+$lang->slide->newWindow  = '新开窗口';
 
 $lang->slide->background = new stdclass();
 
@@ -27,7 +29,7 @@ $lang->slide->background->color = '背景颜色';
 $lang->slide->background->typeList = new stdclass();
 
 $lang->slide->background->typeList->image = '图片';
-$lang->slide->background->typeList->color = '纯色';
+$lang->slide->background->typeList->color = '颜色';
 
 $lang->slide->height      = '高度';
 $lang->slide->url         = '链接';
@@ -43,4 +45,8 @@ $lang->slide->edit     = '编辑幻灯片';
 
 $lang->slide->successSort     = '排序成功保存';
 $lang->slide->noImageSelected = '没有选择图片';
-$lang->slide->suitableSize    = '所有图片尺寸保持一致，最佳尺寸：1140px X 270px(宽 X 高)';
+$lang->slide->suitableSize    = '背景图片大小保持一致。';
+
+/* Targets setting. */
+$lang->slide->target = new stdclass();
+$lang->slide->target->_blank = '新开窗口';

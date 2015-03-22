@@ -42,6 +42,7 @@ $config->rights->guest['message']['index']   = 'index';
 $config->rights->guest['message']['comment'] = 'show';
 $config->rights->guest['message']['notify']  = 'notify';
 $config->rights->guest['message']['post']    = 'post';
+$config->rights->guest['message']['reply']   = 'reply';
 
 $config->rights->guest['book']['index']  = 'index';
 $config->rights->guest['book']['browse'] = 'browse';
@@ -60,7 +61,6 @@ $config->rights->guest['sitemap']['index']   = 'index';
 
 $config->rights->guest['file']['download']    = 'download';
 $config->rights->guest['file']['printfiles']  = 'printfiles';
-$config->rights->guest['file']['filemanager'] = 'filemanager';
 
 $config->rights->guest['error']['index'] = 'index';
 
@@ -70,14 +70,14 @@ $config->rights->guest['page']['view']  = 'view';
 $config->rights->guest['misc']['qrcode'] = 'qrcode';
 
 /* For logged member. */
-$config->rights->member['thread']['post']       = 'post';
-$config->rights->member['thread']['reply']      = 'reply';
-$config->rights->member['thread']['edit']       = 'edit';
-$config->rights->member['thread']['hide']       = 'hide';
-$config->rights->member['thread']['stick']      = 'stick';
-$config->rights->member['thread']['delete']     = 'delete';
-$config->rights->member['thread']['transfer']   = 'transfer';
-$config->rights->member['thread']['deletefile'] = 'deletefile';
+$config->rights->member['thread']['post']         = 'post';
+$config->rights->member['thread']['reply']        = 'reply';
+$config->rights->member['thread']['edit']         = 'edit';
+$config->rights->member['thread']['switchstatus'] = 'switchstatus';
+$config->rights->member['thread']['stick']        = 'stick';
+$config->rights->member['thread']['delete']       = 'delete';
+$config->rights->member['thread']['transfer']     = 'transfer';
+$config->rights->member['thread']['deletefile']   = 'deletefile';
 
 $config->rights->member['reply']['post']       = 'post';
 $config->rights->member['reply']['eidt']       = 'edit';
@@ -90,7 +90,6 @@ $config->rights->member['user']['profile'] = 'profile';
 $config->rights->member['user']['edit']    = 'edit';
 $config->rights->member['user']['logout']  = 'logout';
 $config->rights->member['user']['thread']  = 'thread';
-$config->rights->member['user']['article']  = 'article';
 $config->rights->member['user']['reply']   = 'reply';
 $config->rights->member['user']['message'] = 'message';
 
@@ -98,6 +97,3 @@ $config->rights->member['file']['ajaxupload'] = 'ajaxupload';
 
 $config->rights->member['message']['view']        = 'view';
 $config->rights->member['message']['batchdelete'] = 'batchdelete';
-
-$config->rights->member['article']['frontedit']  = 'frontedit';
-$config->rights->member['article']['frontcreate']  = 'frontcreate';

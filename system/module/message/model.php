@@ -2,8 +2,8 @@
 /**
  * The model file of message module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     message
  * @version     $Id$
@@ -66,20 +66,89 @@ class messageModel extends model
     }
 
     /**
-     * Get replies of message list. 
+     * Get all replies of a message for admin. 
      * 
-     * @param  mix    $messages 
+     * @param  object  $message 
      * @access public
      * @return array
      */
-    public function getReplies($messages)
+    public function getAdminReplies($message)
     {
-        if(empty($messages)) return false;
-        foreach($messages as $message) $objectList[] = $message->id;
+        $replies = $this->getReplies($message);
+
+        if(!empty($replies))
+        {
+            echo "<dl class='alert alert-info'>";
+            foreach($replies as $reply)
+            {
+                printf($this->lang->message->replyItem, $reply->from, $reply->date, $reply->content);
+                $this->getAdminReplies($reply);
+            }
+            echo "</dl>";
+        }
+    }
+
+    /**
+     * Get all replies of a message for front. 
+     * 
+     * @param  object  $message 
+     * @access public
+     * @return array
+     */
+    public function getFrontReplies($message)
+    {
+        $replies = $this->getReplies($message);
+
+        if(!empty($replies))
+        {
+            foreach($replies as $reply)
+            {
+                echo "<tr class='reply'>";
+                echo "<th class='th-from text-important'>$reply->from<br />";
+                echo "<span class='time'>" . formatTime($reply->date, 'Y/m/d') . "</span></th>";
+                echo "<td class='td-content' >" . nl2br($reply->content) . '</td>';
+                echo "<td class='td-action'>";
+                echo html::a(helper::createLink('message', 'reply', "id={$reply->id}"), $this->lang->message->reply, " data-toggle='modal' data-type='iframe' id='reply{$reply->id}'");
+                echo '</td>';
+                echo '</tr>';
+                $this->getFrontReplies($reply);
+            }
+        }
+    }
+
+    /**
+     * Get replies of a message. 
+     * 
+     * @param  object  $message 
+     * @access public
+     * @return array
+     */
+    public function getReplies($message)
+    {
+        $userMessages = $this->cookie->cmts;
+        $userMessages = trim($userMessages, ',');
+        if(empty($userMessages)) $userMessages = '0';
+
+        if(!$message) return false;
         return $this->dao->select('*')->from(TABLE_MESSAGE)
             ->where('type')->eq('reply')
-            ->andWhere('objectID')->in($objectList)
-            ->fetchGroup('objectID');
+            ->andWhere('objectID')->eq($message->id)
+            ->beginIF(defined('RUN_MODE') and RUN_MODE == 'front')->andWhere("(id in ({$userMessages}) or (status = '1'))")->fi()
+            ->orderby('id_asc')
+            ->fetchAll();
+    }
+
+    /**
+     * Get object of a message. 
+     * 
+     * @param  object  $message 
+     * @access public
+     * @return array
+     */
+    public function getObject($message)
+    {
+        $object = $this->dao->select('*')->from(TABLE_MESSAGE)->where('id')->eq($message->objectID)->fetch();
+        printf($this->lang->message->messageItem, $object->from, $object->date, $object->content);
     }
 
     /**
@@ -102,26 +171,34 @@ class messageModel extends model
             ->fetchAll('id');
 
         /* Get object titles and id. */
-        $articles = array();
-        $products = array();
-        $books    = array();
+        $articles   = array();
+        $products   = array();
+        $books      = array();
+        $messageIDs = array();
+        $comments   = array();
 
         foreach($messages as $message)
         {
-            if('article' == $message->objectType) $articles[] = $message->objectID;
-            if('product' == $message->objectType) $products[] = $message->objectID;
-            if('book'    == $message->objectType) $books[]    = $message->objectID;
+            if('article' == $message->objectType) $articles[]   = $message->objectID;
+            if('product' == $message->objectType) $products[]   = $message->objectID;
+            if('book'    == $message->objectType) $books[]      = $message->objectID;
+            if('message' == $message->objectType) $messageIDs[] = $message->objectID;
+            if('comment' == $message->objectType) $comments[]   = $message->objectID;
         }
 
         $articleTitles = $this->dao->select('id, title')->from(TABLE_ARTICLE)->where('id')->in($articles)->fetchPairs('id', 'title');
         $productTitles = $this->dao->select('id, name')->from(TABLE_PRODUCT)->where('id')->in($products)->fetchPairs('id', 'name');
         $bookTitles    = $this->dao->select('id, title')->from(TABLE_BOOK)->where('id')->in($books)->fetchPairs('id', 'title');
+        $messageTitles = $this->dao->select('id, `from`')->from(TABLE_MESSAGE)->where('id')->in($messageIDs)->fetchPairs('id', 'from');
+        $commentTitles = $this->dao->select('id, `from`')->from(TABLE_MESSAGE)->where('id')->in($comments)->fetchPairs('id', 'from');
 
         foreach($messages as $message)
         {
             if($message->objectType == 'article') $message->objectTitle = isset($articleTitles[$message->objectID]) ? $articleTitles[$message->objectID] : '';
             if($message->objectType == 'product') $message->objectTitle = isset($productTitles[$message->objectID]) ? $productTitles[$message->objectID] : '';
             if($message->objectType == 'book')    $message->objectTitle = isset($bookTitles[$message->objectID]) ? $bookTitles[$message->objectID] : '';
+            if($message->objectType == 'message') $message->objectTitle = isset($messageTitles[$message->objectID]) ? $messageTitles[$message->objectID] : '';
+            if($message->objectType == 'comment') $message->objectTitle = isset($commentTitles[$message->objectID]) ? $commentTitles[$message->objectID] : '';
         }
 
         foreach($messages as $message)
@@ -160,7 +237,7 @@ class messageModel extends model
             ->check('captcha', 'captcha')
             ->check('type', 'in', $this->config->message->types)
             ->checkIF(!empty($message->email), 'email', 'email')
-            ->batchCheck('from, type, content', 'notempty')
+            ->batchCheck($this->config->message->require->post, 'notempty')
             ->exec();
 
         if(dao::isError()) return false;
@@ -176,18 +253,21 @@ class messageModel extends model
      */
     public function reply($messageID)
     {
+        $account = $this->app->user->account;
+        $admin   = $this->app->user->admin;
         $message = $this->getByID($messageID);
 
         $reply = fixer::input('post')
-            ->add('objectType', $message->type)
+            ->add('objectType', $message->type == 'reply' ? $message->objectType : $message->type)
             ->add('objectID', $message->id)
-            ->add('to', $message->to)
+            ->add('to', $message->from)
             ->add('type', 'reply')
             ->add('date', helper::now())
+            ->add('status', '0')
             ->add('public', 1)
-            ->add('account', $this->app->user->account)
+            ->setIF($account != 'guest', 'account', $account)
+            ->setIF($admin == 'super', 'status', '1')
             ->add('ip', $this->server->REMOTE_ADDR)
-            ->remove('status')
             ->get();
 
         $this->dao->insert(TABLE_MESSAGE)
@@ -195,15 +275,21 @@ class messageModel extends model
             ->autoCheck()
             ->check('captcha', 'captcha')
             ->check('type', 'in', $this->config->message->types)
-            ->batchCheck('from, type, content', 'notempty')
+            ->batchCheck($this->config->message->require->reply, 'notempty')
             ->exec();
+
+        $replyID = $this->dao->lastInsertId();
 
         if(!dao::isError()) 
         {
-            $this->dao->update(TABLE_MESSAGE)->set('status')->eq(1)->where('status')->eq(0)->andWhere('id')->eq($messageID)->exec();
-            if(dao::isError()) return false;
+            if($admin == 'super')
+            {
+                $this->dao->update(TABLE_MESSAGE)->set('status')->eq(1)->where('status')->eq(0)->andWhere('id')->eq($messageID)->exec();
+                if(dao::isError()) return false;
+            }
 
-            if(validater::checkEmail($message->email))
+            /* if message type is comment , check is user want to receive email reminder  */
+            if(validater::checkEmail($message->email) && ($message->type != 'comment' || $message->receiveEmail))
             {
                 $mail = new stdclass();
                 $mail->to      = $message->email;
@@ -213,7 +299,7 @@ class messageModel extends model
                 $this->loadModel('mail')->send($mail->to, $mail->subject, $mail->body);
             }
 
-            return true;
+            return $replyID;
         }
 
         return false;
@@ -232,8 +318,7 @@ class messageModel extends model
         $message = $this->getByID($messageID);
         $this->dao->delete()
             ->from(TABLE_MESSAGE)
-            ->where('status')->eq(0)
-            ->andWhere('type')->eq($message->type)
+            ->where('type')->eq($message->type)
             ->beginIF($mode == 'single')->andWhere('id')->eq($messageID)->fi()
             ->beginIF($mode == 'pre')->andWhere('id')->ge($messageID)->fi()
             ->exec(false);
@@ -319,6 +404,15 @@ class messageModel extends model
         {
             $node = $this->loadModel('book')->getNodeByID($message->objectID);
             $link = commonModel::createFrontLink('book', 'read', "articleID=$message->objectID", "book={$node->book->alias}&node={$node->alias}");
+        }
+        elseif($message->objectType == 'message')
+        {
+            $link = commonModel::createFrontLink('message', 'index') . "#comment{$message->objectID}";
+        }
+        elseif($message->objectType == 'comment')
+        {
+            $object = $this->getByID($message->objectID);
+            $link   = $this->getObjectLink($object);
         }
 
         return $link;

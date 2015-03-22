@@ -3,7 +3,27 @@ $(document).ready(function()
     $(document).on('click', 'a.plus', function()
     {
         v.key ++;
-        $(this).parents('tr').after($('#entry').html().replace(/key/g, v.key));
+        $(this).parent().parent().after($('#entry').html().replace(/key/g, v.key));
+        computeParent();
+    });
+
+    $(document).on('click', 'a.plus-child', function()
+    {
+        v.key ++;
+        $('#child').find('[name*=parent]').val($(this).parents('.block-item').data('block'));
+        var child = $('#child').html().replace(/key/g, v.key);
+        $(this).parent().parent().after(child);
+        computeParent();
+    });
+
+    $(document).on('click', 'a.btn-add-child', function()
+    {
+        v.key ++;
+        $('#child').find('[name*=parent]').val($(this).parents('.block-item').data('block'));
+        var entry = $('#child').html().replace(/key/g, v.key);
+        $(this).parent().parent().find('.children').append(entry);
+        $(this).parent().siblings(0).children('.block').val(0).attr('readonly', true);
+        computeParent();
     });
 
     /* Set border and title show. */
@@ -22,7 +42,17 @@ $(document).ready(function()
     });
 
     /* Delete options. */
-    $(document).on('click', '.delete', function(){$(this).parents('tr').remove();});
+    $(document).on('click', '.delete', function()
+    {
+        if($(this).parents('.children').size() == 0)
+        {
+            $(this).parents('.block-item').remove();
+        }
+        else
+        {
+            $(this).parent().parent('.block-item').remove();
+        }
+    });
 
    /* Sort up. */
     $(document).on('click', '.icon-arrow-up', function()
@@ -38,3 +68,8 @@ $(document).ready(function()
     });
 
 })
+
+function computeParent()
+{
+    $('[name*=parent]').each(function(){$(this).val($(this).parents('.children').parents('.block-item').data('block'));});
+}

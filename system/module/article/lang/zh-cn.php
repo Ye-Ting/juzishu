@@ -2,8 +2,8 @@
 /**
  * The article category zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     article
  * @version     $Id$
@@ -33,15 +33,17 @@ $lang->article->views      = '阅读';
 $lang->article->comments   = '评论';
 $lang->article->stick      = '置顶级别';
 $lang->article->order      = '排序';
+$lang->article->isLink     = '跳转';
+$lang->article->link       = '链接';
+$lang->article->css        = 'CSS';
+$lang->article->js         = 'JS';
 
 $lang->article->list       = '文章列表';
 $lang->article->admin      = '维护文章';
 $lang->article->create     = '发布文章';
 $lang->article->edit       = '编辑文章';
-
-$lang->article->frontcreate     = '发布文章';
-$lang->article->frontedit       = '编辑文章';
 $lang->article->files      = '附件';
+$lang->article->images     = '图片';
 
 $lang->blog->admin  = '维护博客';
 $lang->blog->list   = '博客列表';
@@ -66,11 +68,12 @@ $lang->article->lblAddedDate = '<strong>添加时间：</strong> %s &nbsp;&nbsp;
 $lang->article->lblAuthor    = "<strong>作者：</strong> %s &nbsp;&nbsp;";
 $lang->article->lblSource    = '<strong>来源：</strong>';
 $lang->article->lblViews     = ' <strong>阅读：</strong>%s';
-$lang->article->lblEditor    = '<i>最后编辑：%s 于 %s</i>';
+$lang->article->lblEditor    = '最后编辑：%s 于 %s';
 $lang->article->lblComments  = '<strong>评论：</strong> %s';
 
 $lang->article->none      = '没有了';
 $lang->article->directory = '返回目录';
 
-$lang->article->note = new stdclass();
-$lang->article->note->addedDate = '可以延迟到选定的时间发布。';
+$lang->article->placeholder = new stdclass();
+$lang->article->placeholder->addedDate = '可以延迟到选定的时间发布。';
+$lang->article->placeholder->link      = '输入链接，可以是站外链接';

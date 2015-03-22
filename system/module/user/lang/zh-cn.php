@@ -2,8 +2,8 @@
 /**
  * The user module zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     user
  * @version     $Id: zh-cn.php 824 2010-05-02 15:32:06Z wwccss $
@@ -36,7 +36,7 @@ $lang->user->zipcode   = '邮编';
 $lang->user->join      = '注册日期';
 $lang->user->visits    = '访问次数';
 $lang->user->ip        = '最后IP';
-$lang->user->last      = '上次登录';
+$lang->user->last      = '最后登录';
 $lang->user->allowTime = '开放时间';
 $lang->user->status    = '状态';
 $lang->user->alert     = '您的帐号已被禁用';
@@ -66,7 +66,6 @@ $lang->user->pullWechatFans  = '更新微信会员数据';
 $lang->user->profile     = '个人信息';
 $lang->user->editProfile = '编辑信息';
 $lang->user->thread      = '我的主题';
-$lang->user->article     = '我的文章';
 $lang->user->messages    = '我的消息';
 $lang->user->reply       = '我的回贴';
 
@@ -150,8 +149,8 @@ $lang->user->oauth->providers['sina'] = '新浪微博';
 $lang->user->oauth->providers['qq']   = 'QQ';
 
 $lang->user->oauth->lblWelcome    = '开放登录，快捷方便';
-$lang->user->oauth->lblProfile    = "<h3>设置用户名，完成注册</h3>";
-$lang->user->oauth->lblBind       = "<h3>或绑定已有帐号</h3>";
+$lang->user->oauth->lblProfile    = "设置用户名，完成注册";
+$lang->user->oauth->lblBind       = "或绑定已有帐号";
 $lang->user->oauth->lblBindFailed = "绑定账户失败！";
 
 $lang->user->statusList = new stdclass();
@@ -166,7 +165,6 @@ $lang->user->control->lblPassword = "留空，则保持不变。";
 
 $lang->user->control->menus[10] = '<i class="icon-user"></i> 个人信息 <i class="icon-chevron-right"></i>|user|profile';
 $lang->user->control->menus[20] = '<i class="icon-edit"></i> 编辑信息 <i class="icon-chevron-right"></i>|user|edit';
-$lang->user->control->menus[27] = '<i class="icon-reorder"></i> 我的文章 <i class="icon-chevron-right"></i>|user|article';
 $lang->user->control->menus[28] = '<i class="icon-comments-alt"></i> 我的消息 <i class="icon-chevron-right"></i>|user|message';
 $lang->user->control->menus[30] = '<i class="icon-share"></i> 我的主题 <i class="icon-chevron-right"></i>|user|thread';
 $lang->user->control->menus[40] = '<i class="icon-mail-reply"></i> 我的回帖 <i class="icon-chevron-right"></i>|user|reply';

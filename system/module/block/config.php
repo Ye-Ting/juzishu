@@ -6,17 +6,21 @@ $config->block->editor->create = array('id' => 'content', 'tools' => 'full');
 $config->block->editor->edit   = array('id' => 'content', 'tools' => 'full');
 
 $config->block->require = new stdclass();
-$config->block->require->create = 'title';
+$config->block->require->create = 'title, template';
 $config->block->require->edit   = 'title';
 
 $config->block->defaultIcons = array();
 $config->block->defaultIcons['about']         = 'icon-group';
 $config->block->defaultIcons['html']          = '';
 $config->block->defaultIcons['contact']       = 'icon-phone';
+$config->block->defaultIcons['followUs']      = 'icon-weixin';
 $config->block->defaultIcons['links']         = 'icon-link';
 
 $config->block->defaultIcons['latestArticle'] = 'icon-list-ul';
 $config->block->defaultIcons['hotArticle']    = 'icon-list-ul';
+
+$config->block->defaultIcons['latestBlog']    = 'icon-list-ul';
+$config->block->defaultIcons['latestThread']  = 'icon-list-ul';
 
 $config->block->defaultIcons['latestProduct'] = 'icon-th';
 $config->block->defaultIcons['hotProduct']    = 'icon-th';

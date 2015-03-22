@@ -2,8 +2,8 @@
 /**
  * The tree category zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     tree
  * @version     $Id$
@@ -29,6 +29,9 @@ $lang->tree->confirmDelete    = "您确定删除该类目吗？";
 $lang->tree->successFixed     = "成功修复";
 $lang->tree->browseByCategory = '类目浏览';
 
+$lang->tree->placeholder = new stdclass();
+$lang->tree->placeholder->link = '输入链接，可以是站外链接';
+
 /* Lang items for article, products. */
 $lang->category = new stdclass();
 $lang->category->common   = '类目';
@@ -38,6 +41,8 @@ $lang->category->parent   = '上级类目';
 $lang->category->desc     = '描述';
 $lang->category->keywords = '关键词';
 $lang->category->children = "子类目";
+$lang->category->isLink   = '跳转';
+$lang->category->link     = '链接';
 
 /* Lang items for forum. */
 $lang->board = new stdclass();
@@ -50,6 +55,8 @@ $lang->board->keywords   = '关键词';
 $lang->board->children   = "子版块";
 $lang->board->readonly   = '访问权限';
 $lang->board->moderators = '版主';
+$lang->board->isLink     = '跳转';
+$lang->board->link       = '链接';
 
 $lang->board->readonlyList[0] = '开放';
 $lang->board->readonlyList[1] = '只读';

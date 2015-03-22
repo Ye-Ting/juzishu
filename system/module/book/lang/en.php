@@ -21,6 +21,7 @@ $lang->book->content     = 'Content';
 $lang->book->alias       = 'Alias';
 $lang->book->order       = 'Order';
 $lang->book->files       = 'Files';
+$lang->book->images      = 'Images';
 $lang->book->chapterList = 'Chapters';
 $lang->book->articleList = 'Articles';
 
@@ -31,7 +32,7 @@ $lang->book->typeList['article'] = 'Article';
 $lang->book->lblAddedDate = 'Add Date: <strong>%s</strong> ';
 $lang->book->lblAuthor    = 'Author: <strong>%s</strong> ';
 $lang->book->lblViews     = 'Read: <strong>%s</strong>  ';
-$lang->book->lblEditor    = '<i>Edited by %s at %s</i>';
+$lang->book->lblEditor    = 'Edited by %s at %s ';
 
 $lang->book->none     = 'None';
 $lang->book->chapter  = 'List';

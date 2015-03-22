@@ -2,14 +2,10 @@
 <?php
 $webRoot   = $config->webRoot;
 $jsRoot    = $webRoot . "js/";
-$themeRoot = $webRoot . "theme/";
+$themeRoot = $webRoot . "template/default/theme/";
 ?>
 <!DOCTYPE html>
-<?php if(RUN_MODE == 'front' and !empty($config->oauth->sina)):?>
-<html xmlns:wb="http://open.weibo.com/wb">
-<?php else:?>
 <html>
-<?php endif;?>
 <head profile="http://www.w3.org/2005/10/profile">
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -36,35 +32,16 @@ $themeRoot = $webRoot . "theme/";
       js::import($jsRoot . 'chanzhi.js');
       js::import($jsRoot . 'jquery/treeview/min.js');
       js::import($jsRoot . 'my.js');
+      js::import($jsRoot . 'my.admin.js');
 
-      css::import($themeRoot . 'zui/css/min.css');
-      css::import($themeRoot . 'default/style.css');
+      css::import($webRoot . 'zui/css/min.css');
       css::import($jsRoot    . 'jquery/treeview/min.css');
+      css::import($themeRoot . 'default/admin.css');
   }
   else
   {
-      css::import($themeRoot . 'default/all.css');
-      js::import($jsRoot     . 'all.js');
-  }
-
-  if(RUN_MODE == 'admin')
-  {
-      css::import($themeRoot . 'default/admin.css');
-      js::import($jsRoot . 'my.admin.js');
-  }
-
-  if(RUN_MODE == 'front' and $config->site->theme)
-  {
-      /* Import custom css. */
-      if($config->site->theme == 'colorful' and isset($config->site->customVersion))
-      {
-          $customCss = str_replace($this->app->getDataRoot(), $this->app->getWebRoot() . 'data/' , $config->site->ui->customCssFile);
-          css::import($customCss . "?v={$config->site->customVersion}");
-      }
-      else
-      {
-         if($config->site->theme != 'default') css::import($themeRoot . $config->site->theme . '/style.css');
-      }
+      css::import($themeRoot . 'default/all.admin.css');
+      js::import($jsRoot     . 'all.admin.js');
   }
 
   if(isset($pageCSS)) css::internal($pageCSS);
@@ -86,19 +63,17 @@ else
 ?>
 <![endif]-->
 <!--[if lt IE 10]>
-<?php js::import($jsRoot . 'jquery/placeholder/min.js'); ?>
-<![endif]-->
-<?php js::set('lang', $lang->js);?>
 <?php
-if(RUN_MODE == 'front')
+if($config->debug)
 {
-    if(!empty($config->oauth->sina)) $sina = json_decode($config->oauth->sina);
-    if(!empty($config->oauth->qq))   $qq   = json_decode($config->oauth->qq);
-    if(!empty($sina->verification)) echo $sina->verification; 
-    if(!empty($qq->verification))   echo $qq->verification;
-    if(!empty($sina->widget)) js::import('http://tjs.sjs.sinajs.cn/open/api/js/wb.js');
+    js::import($jsRoot . 'jquery/placeholder/min.js');
+}
+else
+{
+    js::import($jsRoot . 'all.ie9.js');
 }
 ?>
-<?php if(RUN_MODE == 'front') $this->block->printRegion($layouts, 'all', 'header');?>
+<![endif]-->
+<?php js::set('lang', $lang->js);?>
 </head>
 <body>

@@ -2,8 +2,8 @@
 /**
  * The model file of nav of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan
  * @package     nav
  * @version     $Id$
@@ -95,7 +95,7 @@ class navModel extends model
         $system        = ($nav->type == 'system')  ? '' : 'hide'; 
         $urlHidden     = ($nav->type == 'custom')  ? '' : 'hide'; 
 
-        $entry = '<i class="icon-folder-open shut"></i>';
+        $entry = '<i class="icon-folder-open-alt shut"></i><i class="icon icon-circle text-muted"></i>';
         if(isset($nav->children) && !empty($nav->children)) $entry = '<i class="icon-folder-close shut"></i>';
 
         /* nav type select tag. */
@@ -121,10 +121,10 @@ class navModel extends model
         $entry .= html::hidden("nav[{$grade}][target][]", isset($nav->target) ? $nav->target : '');
 
         /* operate buttons. */
-        $entry .= html::a('javascript:;', $this->lang->nav->add, "class='plus{$grade}'");
-        if($childGrade < 4) $entry .= html::a('javascript:;', $this->lang->nav->addChild, "class='plus{$childGrade}'");
-        $entry .= html::a('javascript:;', $this->lang->delete, "class='remove'");
-        $entry .= "<i class='icon-arrow-up'></i> <i class='icon-arrow-down'></i>";
+        $entry .= html::a('javascript:;', "<i class='icon icon-plus'> </i>", "class='plus{$grade}' title='{$this->lang->nav->add}'");
+        $entry .= html::a('javascript:;', "<i class='icon icon-remove'> </i>", "class='remove' title='{$this->lang->delete}'");
+        if($childGrade < 4) $entry .= html::a('javascript:;', "<i class='icon icon-sitemap'> </i>", "title='{$this->lang->nav->addChild}' class='plus{$childGrade}'");
+        $entry .= "<a href='javascript:;'><i class='icon-move sort-handle sort-handle-" . $grade . "'></i></a>";
 
         return $entry;
     }

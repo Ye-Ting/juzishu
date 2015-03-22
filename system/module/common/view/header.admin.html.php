@@ -1,7 +1,6 @@
 <?php if($extView = $this->getExtViewFile(__FILE__)){include $extView; return helper::cd();}?>
 <?php include 'header.lite.html.php';?>
 <nav class='navbar navbar-inverse navbar-fixed-top' role='navigation' id='mainNavbar'>
-<!-- 
   <div class='navbar-header'>
     <button type='button' class='navbar-toggle' data-toggle='collapse' data-target='.navbar-ex1-collapse'>
       <span class='sr-only'>Toggle navigation</span>
@@ -11,7 +10,6 @@
     </button>
     <?php echo html::a($this->createLink($this->config->default->module), $lang->chanzhiEPSx, "class='navbar-brand'");?>
   </div>
-   -->
   <div class='collapse navbar-collapse navbar-ex1-collapse'>
     <?php echo commonModel::createMainMenu($this->moduleName);?>
     <ul class='nav navbar-nav' id='navbarSwitcher'>
@@ -28,13 +26,19 @@
   <?php $moduleMenu = commonModel::createModuleMenu($this->moduleName);?>
   <?php if($moduleMenu or !empty($treeModuleMenu)):?>
   <div class='col-md-2'>
-    <?php if($moduleMenu) echo $moduleMenu;?>
-    <?php if(!empty($treeModuleMenu)):?>
-    <div class='panel category-nav affix'>
-    <div class='panel-heading'><strong><?php echo $lang->tree->browseByCategory;?></strong></div>
-       <div class='panel-body'><?php echo $treeModuleMenu;?></div>
+    <div class="leftmenu affix hiddden-xs hidden-sm">
+      <?php if($moduleMenu) echo $moduleMenu;?>
+      <?php if(!empty($treeModuleMenu)):?>
+      <div class='panel category-nav'>
+        <div class='panel-body'>
+          <?php echo $treeModuleMenu;?>
+          <?php if(!empty($treeManageLink)):?>
+          <div class='text-right'><?php echo $treeManageLink;?></div>
+          <?php endif;?>
+        </div>
+      </div>
+      <?php endif;?>
     </div>
-    <?php endif;?>
   </div>
   <div class='col-md-10'>
   <?php endif;?>

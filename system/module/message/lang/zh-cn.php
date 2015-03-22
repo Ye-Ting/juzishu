@@ -2,8 +2,8 @@
 /**
  * The message module zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     message
  * @version     $Id$
@@ -53,21 +53,22 @@ $lang->message->readedStatus[0] = '未读';
 $lang->message->readedStatus[1] = '已读';
 
 $lang->comment = new stdclass();
-$lang->comment->common      = '评论';
-$lang->comment->id          = '编号';
-$lang->comment->type        = '类型';
-$lang->comment->from        = '称呼';
-$lang->comment->content     = '内容';
-$lang->comment->phone       = '电话';
-$lang->comment->qq          = 'QQ';
-$lang->comment->email       = '邮箱';
-$lang->comment->captcha     = '验证码';
-$lang->comment->list        = '评论列表';
-$lang->comment->post        = '发表评论';
-$lang->comment->viewArticle = '正文';
-$lang->comment->viewComment = '评论';
-$lang->comment->thanks      = '感谢您的评论，通过审核之后才会显示！';
-$lang->comment->needCheck   = '评论通过审核之后才会显示。';
+$lang->comment->common       = '评论';
+$lang->comment->id           = '编号';
+$lang->comment->type         = '类型';
+$lang->comment->from         = '称呼';
+$lang->comment->content      = '内容';
+$lang->comment->phone        = '电话';
+$lang->comment->qq           = 'QQ';
+$lang->comment->email        = '邮箱';
+$lang->comment->captcha      = '验证码';
+$lang->comment->list         = '评论列表';
+$lang->comment->post         = '发表评论';
+$lang->comment->viewArticle  = '正文';
+$lang->comment->viewComment  = '评论';
+$lang->comment->thanks       = '感谢您的评论，通过审核之后才会显示！';
+$lang->comment->needCheck    = '评论通过审核之后才会显示。';
+$lang->comment->receiveEmail = '接收邮件提醒';
 
 $lang->comment->pass          = '通过';
 $lang->comment->reply         = '回复';
@@ -88,7 +89,8 @@ $lang->comment->confirmPassPre      = '您确定要通过之前的评论吗？';
 $lang->comment->statusList[0] = '未审核';
 $lang->comment->statusList[1] = '已审核';
 
-$lang->message->replyItem = "<dd><strong>%s</strong> 于 <em>%s</em> 回复：%s</dd>";
-$lang->comment->replyItem = "<dd><strong>%s</strong> 于 <em>%s</em> 回复：%s</dd>";
+$lang->message->replyItem   = "<dd><strong>%s</strong> 于 <em>%s</em> 回复：%s</dd>";
+$lang->comment->replyItem   = "<dd><strong>%s</strong> 于 <em>%s</em> 回复：%s</dd>";
+$lang->message->messageItem = "<dd><strong>%s</strong> 于 <em>%s</em> 发表：%s</dd>";
 
 $lang->message->replySubject = '%s管理员的回复';

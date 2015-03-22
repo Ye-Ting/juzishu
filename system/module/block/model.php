@@ -2,8 +2,8 @@
 /**
  * The model file of block module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     block
  * @version     $ID$
@@ -11,6 +11,8 @@
  */
 class blockModel extends model
 {
+    public $counter;
+
     /**
      * Get block by id.
      * 
@@ -21,7 +23,7 @@ class blockModel extends model
     public function getByID($blockID)
     {
         $block = $this->dao->findByID($blockID)->from(TABLE_BLOCK)->fetch();
-        if(strpos('code', $block->type) === false) $block->content = json_decode($block->content);
+        if(strpos($block->type, 'code') === false) $block->content = json_decode($block->content);
         if(empty($block->content)) $block->content = new stdclass();
         return $block;
     }
@@ -29,14 +31,14 @@ class blockModel extends model
     /**
      * Get block list of one site.
      * 
+     * @param  string    $template
      * @param  object    $pager 
      * @access public
      * @return array
      */
-    public function getList($pager)
+    public function getList($template, $pager)
     {
-        $blocks = $this->dao->select('*')->from(TABLE_BLOCK)->orderBy('id_desc')->page($pager)->fetchAll('id');
-        return $blocks;
+        return $this->dao->select('*')->from(TABLE_BLOCK)->where('template')->eq($template)->orderBy('id_desc')->page($pager)->fetchAll('id');
     }
 
     /**
@@ -50,20 +52,12 @@ class blockModel extends model
     public function getPageBlocks($module, $method)
     {
         $pages      = "all,{$module}_{$method}";
-        $rawLayouts = $this->dao->select('*')->from(TABLE_LAYOUT)->where('page')->in($pages)->fetchGroup('page', 'region');
+        $rawLayouts = $this->dao->select('*')->from(TABLE_LAYOUT)
+            ->where('page')->in($pages)
+            ->andWhere('template')->eq(!empty($this->config->template->name) ? $this->config->template->name : 'default')
+            ->fetchGroup('page', 'region');
 
-        $blocks = array();
-        foreach($rawLayouts as $page => $pageBlocks)
-        {
-            foreach($pageBlocks as $regionBlocks) 
-            {
-                $regionBlocks = json_decode($regionBlocks->blocks);
-                if(empty($regionBlocks)) continue;
-                foreach($regionBlocks as $block) $blocks[] = $block->id;
-            }
-        }
-
-        $blocks = $this->dao->select('*')->from(TABLE_BLOCK)->where('id')->in($blocks)->fetchAll('id');
+        $blocks = $this->dao->select('*')->from(TABLE_BLOCK)->fetchAll('id');
 
         $layouts = array();
         foreach($rawLayouts as $page => $pageBlocks) 
@@ -73,18 +67,74 @@ class blockModel extends model
             {
                 $layouts[$page][$region] = array();
 
-                $regionBlocks =  json_decode($regionBlock->blocks);
+                $regionBlocks = json_decode($regionBlock->blocks);
 
                 foreach($regionBlocks as $block)
                 {
-                    if(isset($blocks[$block->id])) 
+                    if(!empty($blocks[$block->id]))
                     {
-                        $mergedBlock = $blocks[$block->id];
-                        if(isset($block->grid))       $mergedBlock->grid       = $block->grid;
-                        if(isset($block->titleless))  $mergedBlock->titleless  = $block->titleless;
-                        if(isset($block->borderless)) $mergedBlock->borderless = $block->borderless;
-                        $layouts[$page][$region][] = $mergedBlock;
+                        $block->title    = $blocks[$block->id]->title;
+                        $block->type     = $blocks[$block->id]->type;
+                        $block->content  = $blocks[$block->id]->content;
+                        $block->template = $blocks[$block->id]->template;
                     }
+                    else
+                    {
+                        $block->title    = '';
+                        $block->type     = '';
+                        $block->content  = '';
+                        $block->template = '';
+                    }
+
+                    $mergedBlock = new stdclass();
+                    
+                    if(!empty($block->children))
+                    {
+                        $mergedBlock->id = '';
+                        $children = array();
+                        foreach($block->children as $child)
+                        {
+                            if(!empty($blocks[$child->id]))
+                            {
+                                $child->title    = $blocks[$child->id]->title;
+                                $child->type     = $blocks[$child->id]->type;
+                                $child->content  = $blocks[$child->id]->content;
+                                $child->template = $blocks[$child->id]->template;
+                            }
+                            else
+                            {
+                                $child->title    = '';
+                                $child->type     = '';
+                                $child->content  = '';
+                                $child->template = '';
+                            }
+
+                            $mergedChild = new stdclass();
+                            $mergedChild->id         = $child->id;
+                            $mergedChild->title      = $child->title;
+                            $mergedChild->type       = $child->type;
+                            $mergedChild->content    = $child->content;
+                            $mergedChild->template   = $child->template;
+                            $mergedChild->grid       = $child->grid;
+                            $mergedChild->titleless  = $child->titleless;
+                            $mergedChild->borderless = $child->borderless;
+                            $children[] = $mergedChild;
+                        }
+                        $mergedBlock->children = $children;
+                    }
+                    else
+                    {
+                        $mergedBlock->id       = $block->id;
+                        $mergedBlock->title    = $block->title;
+                        $mergedBlock->type     = $block->type;
+                        $mergedBlock->content  = $block->content;
+                        $mergedBlock->template = $block->template;
+                    }
+
+                    if(isset($block->grid))       $mergedBlock->grid       = $block->grid;
+                    if(isset($block->titleless))  $mergedBlock->titleless  = $block->titleless;
+                    if(isset($block->borderless)) $mergedBlock->borderless = $block->borderless;
+                    $layouts[$page][$region][] = $mergedBlock;
                 }
             }
         }
@@ -96,29 +146,86 @@ class blockModel extends model
      * 
      * @param  string    $page 
      * @param  string    $region 
+     * @param  string    $template 
      * @access public
      * @return array
      */
-    public function getRegionBlocks($page, $region)
+    public function getRegionBlocks($page, $region, $template)
     {
-        $regionBlocks = $this->dao->select('*')->from(TABLE_LAYOUT)->where('page')->eq($page)->andWhere('region')->eq($region)->fetch('blocks');
+        $regionBlocks = $this->dao->select('*')->from(TABLE_LAYOUT)->where('page')->eq($page)->andWhere('region')->eq($region)->andWhere('template')->eq($template)->fetch('blocks');
         $regionBlocks = json_decode($regionBlocks);
         if(empty($regionBlocks)) return array();
 
-        $blockIdList = array();
-        foreach($regionBlocks as $block) $blockIdList[] = $block->id;
-
-        $blocks = $this->dao->select('*')->from(TABLE_BLOCK)->where('id')->in($blockIdList)->fetchAll('id');
+        $blocks = $this->dao->select('*')->from(TABLE_BLOCK)->fetchAll('id');
 
         $sortedBlocks = array();
         foreach($regionBlocks as $block) 
         {
-            if(!isset($blocks[$block->id])) continue;
+            if(!empty($blocks[$block->id]))
+            {
+                $block->title    = $blocks[$block->id]->title;
+                $block->type     = $blocks[$block->id]->type;
+                $block->template = $blocks[$block->id]->template;
+                $block->content  = $blocks[$block->id]->content;
+            }
+            else
+            {
+                $block->title    = '';
+                $block->type     = '';
+                $block->template = '';
+                $block->content  = '';
 
-            $sortedBlocks[$block->id] = $blocks[$block->id];
-            $sortedBlocks[$block->id]->grid       = $block->grid;
-            $sortedBlocks[$block->id]->titleless  = $block->titleless;
-            $sortedBlocks[$block->id]->borderless = $block->borderless;
+            }
+
+            $rawBlock = new stdclass();
+            if(!empty($block->children))
+            {
+                $rawBlock->id = '';
+                $children = array();
+                foreach($block->children as $child)
+                {
+                    if(!empty($blocks[$child->id]))
+                    {
+                        $child->title    = $blocks[$child->id]->title;
+                        $child->type     = $blocks[$child->id]->type;
+                        $child->content  = $blocks[$child->id]->content;
+                        $child->template = $blocks[$child->id]->template;
+                    }
+                    else
+                    {
+                        $child->title    = '';
+                        $child->type     = '';
+                        $child->content  = '';
+                        $child->template = '';
+                    }
+
+                    $rawChild = new stdclass();
+                    $rawChild->grid       = $child->grid;
+                    $rawChild->titleless  = $child->titleless;
+                    $rawChild->borderless = $child->borderless;
+                    $rawChild->id         = $child->id;
+                    $rawChild->title      = $child->title;
+                    $rawChild->type       = $child->type;
+                    $rawChild->content    = $child->content;
+                    $rawChild->template   = $child->template;
+                    $children[] = $rawChild;
+                }
+                $rawBlock->children = $children;
+            }
+            else
+            {
+                $rawBlock->id       = $block->id;
+                $rawBlock->title    = $block->title;
+                $rawBlock->type     = $block->type;
+                $rawBlock->content  = $block->content;
+                $rawBlock->template = $block->template;
+            }
+
+            $rawBlock->grid       = $block->grid;
+            $rawBlock->titleless  = $block->titleless;
+            $rawBlock->borderless = $block->borderless;
+
+            $sortedBlocks[] = $rawBlock;
         }
         return $sortedBlocks;
     }
@@ -129,36 +236,37 @@ class blockModel extends model
      * @access public
      * @return array
      */
-    public function getPairs()
+    public function getPairs($template)
     {
-        return $this->dao->select('id, title')->from(TABLE_BLOCK)->fetchPairs();
+        return $this->dao->select('id, title')->from(TABLE_BLOCK)->where('template')->eq($template)->fetchPairs();
     }
     
     /**
      * Create type  select area.
      * 
+     * @param  string    $template
      * @param  string    $type 
      * @param  int       $blockID 
      * @access public
      * @return string
      */
-    public function createTypeSelector($type, $blockID = 0)
+    public function createTypeSelector($template, $type, $blockID = 0)
     {
         $select = "<div class='btn-group'><button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown'>";
-        $select .= $this->lang->block->typeList[$type] . " <span class='caret'></span></button>";
+        $select .= $this->lang->block->$template->typeList[$type] . " <span class='caret'></span></button>";
         $select .= "<ul class='dropdown-menu' role='menu'>";
-        foreach($this->lang->block->typeGroups as $block => $group)
+        foreach($this->lang->block->$template->typeGroups as $block => $group)
         {
             if(isset($lastGroup) and $group !== $lastGroup) $select .= "<li class='divider'></li>";
             $lastGroup = $group;
             $class = ($block == $type) ? "class='active'" : '';
             if($blockID)
             {
-                $select .= "<li {$class}>" . html::a(helper::createLink('block', $this->app->getMethodName(), "blockID={$blockID}&type={$block}"), $this->lang->block->typeList[$block]) . "</li>";
+                $select .= "<li {$class}>" . html::a(helper::createLink('block', $this->app->getMethodName(), "template={$template}&blockID={$blockID}&type={$block}"), $this->lang->block->$template->typeList[$block]) . "</li>";
             }
             else
             {
-                $select .= "<li {$class}>" . html::a(helper::createLink('block', $this->app->getMethodName(), "type={$block}"), $this->lang->block->typeList[$block]) . "</li>";
+                $select .= "<li {$class}>" . html::a(helper::createLink('block', $this->app->getMethodName(), "template={$template}&type={$block}"), $this->lang->block->$template->typeList[$block]) . "</li>";
             }
         }
         $select .= "</ul></div>" .  html::hidden('type', $type);
@@ -168,61 +276,79 @@ class blockModel extends model
     /**
      * Create form entry of one block backend.
      * 
+     * @param  string  $template
      * @param  object  $block 
      * @param  mix     $key 
+     * @param  int     $grade 1,2
      * @access public
      * @return void
      */
-    public function createEntry($block = null, $key)
+    public function createEntry($template, $region, $block = null, $key, $grade = 1)
     {
         $blockOptions[''] = $this->lang->block->select;
-        $blockOptions += $this->getPairs();
+        $blockOptions += $this->getPairs($template);
+
         $blockID = isset($block->id) ? $block->id : '';
         $type    = isset($block->type) ? $block->type : '';
         $grid    = isset($block->grid) ? $block->grid : '';
 
-        $entry = "<tr class='v-middle'>";
-        $entry .= "<td><div class='input-group'>";
-        $entry .= html::select("blocks[{$key}]", $blockOptions, $blockID, "class='form-control'");
+        $entry = "<div class='block-item row' data-block='{$key}' data-id='{$blockID}'>";
+        $readonly = !empty($block->children) ? "readonly='readonly'" : '';
+        $entry .= "<div class='col col-type'>" . html::select("blocks[{$key}]", $blockOptions, $blockID, "class='form-control block' id='block_{$key}' $readonly") . "</div>";
+        if($region != 'bottom') $entry .= "<div class='col col-grid'><div class='input-group'><span class='input-group-addon'>{$this->lang->block->grid}</span>" . html::select("grid[{$key}]", $this->lang->block->gridOptions, $grid, "class='form-control'") . '</div></div>';
 
-        $titlelessChecked = isset($block->titleless) && $block->titleless ? 'checked' : '';
+        $titlelessChecked  = isset($block->titleless) && $block->titleless ? 'checked' : '';
         $borderlessChecked = isset($block->borderless) && $block->borderless ? 'checked' : '';
+        $containerChecked  = isset($block->container) && $block->container ? 'checked' : '';
         $entry .= "
-            <div class='input-group-addon'>
-              <div class='checkbox checkbox-inline'>
-                 <label>
-                   <input type='checkbox' {$titlelessChecked} value='1'><input type='hidden' name='titleless[{$key}]' /><span>{$this->lang->block->titleless}</span>
-                 </label>
-              </div>
-              <div class='checkbox checkbox-inline'>
-                <label>
-                  <input type='checkbox' {$borderlessChecked} value='1'><input type='hidden' name='borderless[{$key}]' /><span>{$this->lang->block->borderless}</span>
-                </label>
-              </div>
-            </div></div></td>";
+            <div class='text-center col col-style'>
+               <label>
+                 <input type='checkbox' {$titlelessChecked} value='1'><input type='hidden' name='titleless[{$key}]' /><span>{$this->lang->block->titleless}</span>
+               </label>
+              <label>
+                <input type='checkbox' {$borderlessChecked} value='1'><input type='hidden' name='borderless[{$key}]' /><span>{$this->lang->block->borderless}</span>
+              </label>
+            </div>";
 
-        $entry .= "<td class='text-middle'>";
-        $entry .= html::select("grid[{$key}]", $this->lang->block->gridOptions, $grid, "class='form-control'");
-        $entry .= '</td>';
-
-        $entry .= '<td class="text-center text-middle">';
-        $entry .= html::a('javascript:;', $this->lang->block->add, "class='plus'");
+        $entry .= '<div class="col col-actions actions">';
+        if($grade == 1) $entry .= html::a('javascript:;', $this->lang->block->add, "class='plus'");
+        if($grade == 2) $entry .= html::a('javascript:;', $this->lang->block->add, "class='plus-child'");
         $entry .= html::a('javascript:;', $this->lang->delete, "class='delete'");
-        $entry .= html::a(inlink('edit', "blockID={$blockID}&type={$type}"), $this->lang->edit, "class='edit'");
-        $entry .= "<i class='icon-arrow-up'></i> <i class='icon-arrow-down'></i>";
-        $entry .= '</td></tr>';
+        $entry .= html::a(inlink('edit', "template={$template}&blockID={$blockID}&type={$type}"), $this->lang->edit, "class='edit'");
+        if($grade == 1) $entry .= html::a('javascript:;', $this->lang->block->addChild, "class='btn-add-child'");
+        $entry .= '</div>';
+        $entry .= "<div class='col col-move'><span class='sort-handle sort-handle-{$grade}'><i class='icon-move'></i> {$this->lang->block->sort}</span></div>";
+        if($grade == 1)
+        {
+            $entry .= "<div class='children'>";
+            if(!empty($block->children))
+            {
+                foreach($block->children as $child)
+                {
+                    $key ++;
+                    $entry .= $this->createEntry($template, $region, $child, $key, 2);
+                }
+            }
+            $entry .= '</div>';
+        }
+        if($grade == 2) $entry .= html::hidden("parent[{$key}]", '');
+        $entry .= "</div>";
+        if($grade == 1) $this->counter = $key;
         return $entry;
     }
 
     /**
      * Create a block.
      * 
+     * @param  string  $template
      * @access public
      * @return void
      */
-    public function create()
+    public function create($template)
     {
-        $block = fixer::input('post')->stripTags('content', $this->config->block->allowedTags)->get();
+        $block = fixer::input('post')->add('template', $template)->stripTags('content', $this->config->block->allowedTags)->get();
+        if($this->post->type == 'phpcode') $block = fixer::input('post')->add('template', $template)->get();
+
         $gpcOn = version_compare(phpversion(), '5.4', '<') and get_magic_quotes_gpc();
 
         if(isset($block->params))
@@ -246,12 +372,15 @@ class blockModel extends model
     /**
      * Update  block.
      * 
+     * @param  string  $template
      * @access public
      * @return void
      */
-    public function update()
+    public function update($template)
     {
-        $block = fixer::input('post')->stripTags('content', $this->config->block->allowedTags)->get();
+        $block = fixer::input('post')->add('template', $template)->stripTags('content', $this->config->block->allowedTags)->get();
+        if($this->post->type == 'phpcode') $block = fixer::input('post')->add('template', $template)->get();
+
         $gpcOn = version_compare(phpversion(), '5.4', '<') and get_magic_quotes_gpc();
 
         if(isset($block->params))
@@ -293,18 +422,20 @@ class blockModel extends model
      * 
      * @param string $page 
      * @param string $region 
+     * @param string $template 
      * @access public
      * @return void
      */
-    public function setRegion($page, $region)
+    public function setRegion($page, $region, $template)
     {
         $layout = new stdclass();
         $layout->page   = $page;
         $layout->region = $region;
+        $layout->template = $template;
 
         if(!$this->post->blocks)
         {
-            $this->dao->delete()->from(TABLE_LAYOUT)->where('page')->eq($page)->andWhere('region')->eq($region)->exec();
+            $this->dao->delete()->from(TABLE_LAYOUT)->where('page')->eq($page)->andWhere('region')->eq($region)->andWhere('template')->eq($template)->exec();
             if(!dao::isError()) return true;
         }
 
@@ -317,13 +448,29 @@ class blockModel extends model
             $blocks[$key]['borderless'] = $this->post->borderless[$key];
         }
 
-        /* Resort blocks. */
-        foreach($blocks as $block) $sortedBlocks[] = $block;
+        /* Compute children blocks. */
+        if($this->post->parent)
+        {
+            $parents = (array) $this->post->parent;
+            foreach($parents as $key => $parent) $children[$parent][] = $key;
+            foreach($blocks as $key => $block)
+            { 
+                if(empty($children[$key])) continue;
+                foreach($children[$key] as $child)
+                {
+                    $blocks[$key]['children'][] = $blocks[$child];
+                    unset($blocks[$child]);
+                }
+            }
+        }
+
+        /* Clear blocks keys. */
+        $sortedBlocks = array();
+        foreach($blocks as $key => $block) $sortedBlocks[] = $block;
         $layout->blocks = helper::jsonEncode($sortedBlocks);
 
-        $count = $this->dao->select('count(*) as count')->from(TABLE_LAYOUT)->where('page')->eq($page)->andWhere('region')->eq($region)->fetch('count');
-
-        if($count)  $this->dao->update(TABLE_LAYOUT)->data($layout)->where('page')->eq($page)->andWhere('region')->eq($region)->exec();
+        $count = $this->dao->select('count(*) as count')->from(TABLE_LAYOUT)->where('page')->eq($page)->andWhere('region')->eq($region)->andWhere('template')->eq($template)->fetch('count');
+        if($count)  $this->dao->update(TABLE_LAYOUT)->data($layout)->where('page')->eq($page)->andWhere('region')->eq($region)->andWhere('template')->eq($template)->exec();
         if(!$count) $this->dao->insert(TABLE_LAYOUT)->data($layout)->exec();
 
         return !dao::isError();
@@ -362,47 +509,103 @@ class blockModel extends model
     private function parseBlockContent($block, $withGrid = false, $containerHeader, $containerFooter)
     {
         $withGrid = $withGrid and isset($block->grid);
-        if($withGrid)
+        if(!empty($block->children)) 
         {
-            if($block->grid == 0) echo "<div class='col-md-4 col-auto'>";
-            else echo "<div class='col-md-{$block->grid}' data-grid='{$block->grid}'>";
+            if($withGrid)
+            {
+                if($block->grid == 0) echo "<div class='col-md-12 col-auto'><div class='row'>";
+                else echo "<div class='col-md-{$block->grid}' data-grid='{$block->grid}'><div class='row'>";
+            }
+
+            foreach($block->children as $child) $this->parseBlockContent($child, $withGrid, $containerHeader, $containerFooter);
+
+            if($withGrid) echo '</div></div>';
         }
-
-        /* First try block/ext/sitecode/view/block/ */
-        $extBlockRoot = dirname(__FILE__) . "/ext/_{$this->config->site->code}/view/block/";
-        $blockFile    = $extBlockRoot . strtolower($block->type) . '.html.php';
-
-        /* Then try block/ext/view/block/ */
-        if(!file_exists($blockFile))
+        else
         {
-            $extBlockRoot = dirname(__FILE__) . "/ext/view/block/";
+            if($withGrid)
+            {
+                if(!isset($block->grid)) $block->grid = 12; 
+                if($block->grid == 0)
+                {
+                    echo "<div class='col-md-4 col-auto'>";
+                }
+                else
+                {
+                    echo "<div class='col-md-{$block->grid}' data-grid='{$block->grid}'>";
+                }
+            }
+
+            $tplPath = $this->app->getTplRoot() . $this->config->template->name . DS . 'view' . DS . 'block' . DS;
+
+            /* First try block/ext/sitecode/view/block/ */
+            $extBlockRoot = $tplPath . "/ext/_{$this->config->site->code}/";
             $blockFile    = $extBlockRoot . strtolower($block->type) . '.html.php';
 
-            /* No ext file, use the block/view/block/. */
+            /* Then try block/ext/view/block/ */
             if(!file_exists($blockFile))
             {
-                $blockRoot = dirname(__FILE__) . '/view/block/';
-                $blockFile = $blockRoot . strtolower($block->type) . '.html.php';
-                if(!file_exists($blockFile)) return '';
+                $extBlockRoot = $tplPath . 'ext' . DS;
+                $blockFile    = $extBlockRoot . strtolower($block->type) . '.html.php';
+
+                /* No ext file, use the block/view/block/. */
+                if(!file_exists($blockFile))
+                {
+                    $blockFile = $tplPath . strtolower($block->type) . '.html.php';
+                    if(!file_exists($blockFile))
+                    {
+                        if($withGrid) echo '</div>';
+                        return '';
+                    }
+                }
             }
+
+            $blockClass = '';
+            if(isset($block->borderless) and $block->borderless) $blockClass .= 'panel-borderless';
+            if(isset($block->titleless) and $block->titleless) $blockClass  .= ' panel-titleless';
+
+            $content = is_object($block->content) ? $block->content : json_decode($block->content);
+
+            if(isset($this->config->block->defaultIcons[$block->type])) 
+            {
+                $defaultIcon = $this->config->block->defaultIcons[$block->type];
+                $iconClass   = isset($content->icon) ? $content->icon : $defaultIcon;
+                $icon        = $iconClass ? "<i class='{$iconClass}'></i> " : "" ;
+            }
+
+            $style  = '<style>';
+            $style .= '#block' . $block->id . '{';
+            $style .= !empty($content->backgroundColor) ? 'background-color:' . $content->backgroundColor . ' !important;' : '';
+            $style .= !empty($content->textColor) ? 'color:' . $content->textColor . ' !important;;' : '';
+            $style .= !empty($content->borderColor) ? 'border-color:' . $content->borderColor . ' !important;' : '';
+            $style .= '}';
+            $style .= '#block' . $block->id . ' .panel-heading{';
+            $style .= !empty($content->titleColor) ? 'color:' .$content->titleColor . ';' : '';
+            $style .= !empty($content->titleBackground) ? 'background:' .$content->titleBackground . ' !important;;' : '';
+            $style .= '}';
+            $style .= !empty($content->iconColor) ? '#block' . $block->id . ' i{color:' .$content->iconColor . ' !important;}' : '';
+            $style .= !empty($content->linkColor) ? '#block' . $block->id . ' a{color:' .$content->linkColor . ' !important;}' : '';
+            $style .= '</style>';
+
+            echo $containerHeader;
+            if(file_exists($blockFile)) include $blockFile;
+            echo $style;
+            echo $containerFooter;
+
+            if($withGrid) echo "</div>";
         }
+    }
 
-        $blockClass = '';
-        if(isset($block->borderless) and $block->borderless) $blockClass .= 'panel-borderless';
-        if(isset($block->titleless) and $block->titleless) $blockClass  .= ' panel-titleless';
-
-        if(isset($this->config->block->defaultIcons[$block->type])) 
-        {
-            $defaultIcon = $this->config->block->defaultIcons[$block->type];
-            $content     = is_object($block->content) ? $block->content : json_decode($block->content);
-            $iconClass   = isset($content->icon) ? $content->icon : $defaultIcon;
-            $icon        = $iconClass ? "<i class='{$iconClass}'></i> " : "" ;
-        }
-
-        echo $containerHeader;
-        include $blockFile;
-        echo $containerFooter;
-
-        if($withGrid) echo '</div>';
+    /**
+     * Load language from a template.
+     * 
+     * @param  string $template
+     * @access public
+     * @return void
+     */
+    public function loadTemplateLang($template)
+    {
+        $this->config->template->name = $template;
+        $this->app->loadLang('block');
     }
 }

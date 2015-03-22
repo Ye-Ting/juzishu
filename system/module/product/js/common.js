@@ -22,7 +22,7 @@ $(document).ready(function()
         key ++;
     })
 
-    $(document).on('click', '.icon-minus', function()
+    $(document).on('click', '.icon-remove', function()
     {
         if($(this).parents('td').find('.row').size() > 1)
         {
@@ -36,4 +36,14 @@ $(document).ready(function()
     })
 
     if(v.categoryID !== 0) $('.tree #category' + v.categoryID).addClass('active');
+
+    if(!$('#setCurrency').length)
+    {
+        var currencyLink = createLink('product', 'currency');
+        var currencyMenu = '<ul class="nav-left nav nav-primary nav-stacked"><li><a id="setCurrency" href="' + currencyLink + '">';
+        currencyMenu += v.currency + '<i class="icon-chevron-right"></i>';
+        currencyMenu += '</a></li></ul>';
+        $('.category-nav').after(currencyMenu);
+        $('#setCurrency').modalTrigger();
+    }
 })

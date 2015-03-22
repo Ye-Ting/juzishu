@@ -2,8 +2,8 @@
 /**
  * The control file of reply module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     reply
  * @version     $Id$
@@ -81,6 +81,7 @@ class reply extends control
 
         $thread = $this->loadModel('thread')->getByID($reply->thread);
         if(!$this->thread->canManage($thread->board, $reply->author)) die(js::locate('back'));
+        if($this->thread->canManage($thread->board)) $this->config->reply->editor->edit['tools'] = 'full';
         
         if($_POST)
         {
@@ -93,7 +94,7 @@ class reply extends control
             $this->reply->update($replyID);
             if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
-            $this->send(array('result' => 'success', 'locate' => $this->createLink('thread', 'view', "threaID=$thread->id")));
+            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $this->createLink('thread', 'view', "threaID=$thread->id")));
         }
 
         $this->view->title  = $this->lang->reply->edit . $this->lang->colon . $thread->title;

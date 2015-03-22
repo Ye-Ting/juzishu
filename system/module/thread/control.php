@@ -2,8 +2,8 @@
 /**
  * The control file of thread module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     thread
  * @version     $Id$
@@ -94,7 +94,7 @@ class thread extends control
 
             $this->thread->update($threadID);
             if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
-            $this->send(array('result' => 'success', 'locate' => inlink('view', "threadID=$threadID")));
+            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('view', "threadID=$threadID")));
         }
 
         $board = $this->loadModel('tree')->getById($thread->board);
@@ -119,6 +119,12 @@ class thread extends control
     {
         $thread = $this->thread->getByID($threadID);
         if(!$thread) die(js::locate('back'));
+
+        if($thread->link)
+        {
+             $this->thread->plusCounter($threadID);
+             helper::header301($thread->link);
+        }
 
         /* Set editor for current user. */
         $this->thread->setEditor($thread->board, 'view');
@@ -178,6 +184,7 @@ class thread extends control
 
         $parents = $this->dao->select('*')->from(TABLE_CATEGORY)->where('parent')->eq(0)->andWhere('type')->eq('forum')->fetchAll('id');
 
+        $this->view->title   = "<i class='icon-edit'></i> " . $this->lang->thread->transfer;
         $this->view->parents = array_keys($parents);
         $this->view->thread  = $thread;
         $this->view->boards  = $this->loadModel('tree')->getOptionMenu('forum', 0, $removeRoot = true);
@@ -244,7 +251,8 @@ class thread extends control
             {
                 $locate = helper::createLink('forum', 'board', "board=$thread->board");
             }
-            $this->send(array('result' => 'success', 'locate' => $locate));
+            $message = $thread->hidden ? $this->lang->thread->successShow : $this->lang->thread->successHide;
+            $this->send(array('result' => 'success', 'message' => $this->lang->thread->successHide,  'locate' => $locate));
         }
 
         $this->send(array('result' => 'fail', 'message' => dao::getError()));
@@ -267,7 +275,7 @@ class thread extends control
         if(dao::isError()) $this->send(array('result' =>'fail', 'message' => dao::getError()));
 
         $message = $stick == 0 ? $this->lang->thread->successUnstick : $this->lang->thread->successStick;
-        $this->send(array('message' => $message, 'target' => '#manageBox', 'source' => inlink('view', "threaID=$threadID") . ' #manageMenu'));
+        $this->send(array('message' => $message, 'locate' => inlink('view', "threaID=$threadID")));
     }
 
     /**

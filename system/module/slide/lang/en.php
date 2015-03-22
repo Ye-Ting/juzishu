@@ -2,8 +2,8 @@
 /**
  * The slide category zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     slide
  * @version     $Id$
@@ -12,11 +12,13 @@
 $lang->slide->common = 'Slides';
 
 $lang->slide->title      = 'Title';
+$lang->slide->titleColor = 'Title Color';
 $lang->slide->image      = 'Image';
 $lang->slide->mainLink   = 'Url';
 $lang->slide->summary    = 'Summary';
 $lang->slide->label      = 'Label';
 $lang->slide->button     = 'Button';
+$lang->slide->newWindow  = 'New window';
 
 $lang->slide->background = new stdclass();
 
@@ -43,4 +45,8 @@ $lang->slide->edit     = 'Edit';
 
 $lang->slide->successSort     = 'Order data saved.';
 $lang->slide->noImageSelected = 'No images selected';
-$lang->slide->suitableSize    = "You'd better use pictures of same size，<i class='text-muted'>1140px X 270px</i> recommended.";
+$lang->slide->suitableSize    = "You must use pictures of same size.";
+
+/* Targets setting. */
+$lang->slide->target = new stdclass();
+$lang->slide->target->_blank = 'New window';

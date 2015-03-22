@@ -2,8 +2,8 @@
 /**
  * The article category zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     article
  * @version     $Id$
@@ -33,12 +33,17 @@ $lang->article->views      = 'Views';
 $lang->article->comments   = 'Comments';
 $lang->article->stick      = 'Sticky';
 $lang->article->order      = 'Order';
+$lang->article->isLink     = 'Locate';
+$lang->article->link       = 'Link';
+$lang->article->css        = 'CSS';
+$lang->article->js         = 'JS';
 
 $lang->article->list       = 'List';
 $lang->article->admin      = 'Admin';
 $lang->article->create     = 'Create';
 $lang->article->edit       = 'Edit';
 $lang->article->files      = 'Files';
+$lang->article->images     = 'Images';
 
 $lang->blog->admin  = 'Admin';
 $lang->blog->list   = 'List';
@@ -63,11 +68,12 @@ $lang->article->lblAddedDate = '<strong>Added:</strong> %s &nbsp;&nbsp;';
 $lang->article->lblAuthor    = "<strong>Author:</strong> %s &nbsp;&nbsp;";
 $lang->article->lblSource    = '<strong>Source:</strong>';
 $lang->article->lblViews     = ' <strong>Views:</strong>%s';
-$lang->article->lblEditor    = '<i>Edited by %s at %s</i>';
+$lang->article->lblEditor    = 'Edited by %s at %s';
 $lang->article->lblComments  = '<strong>Comments:</strong> %s';
 
 $lang->article->none      = 'None';
 $lang->article->directory = 'List';
 
-$lang->article->note = new stdclass();
-$lang->article->note->addedDate = 'Schedule to Publish the article after this time';
+$lang->article->placeholder = new stdclass();
+$lang->article->placeholder->addedDate = 'Schedule to Publish the article after this time';
+$lang->article->placeholder->link      = 'Input link, it can be outer chain.';

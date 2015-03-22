@@ -2,8 +2,8 @@
 /**
  * The common header file of blog module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan <guanxiying@xirangit.com>
  * @package     blog
  * @version     $Id$
@@ -103,7 +103,14 @@ else
 <![endif]-->
 <!--[if lt IE 10]>
 <?php
-js::import($jsRoot . 'jquery/placeholder/min.js');
+if($config->debug)
+{
+    js::import($jsRoot . 'jquery/placeholder/min.js');
+}
+else
+{
+    js::import($jsRoot . 'all.ie9.js');
+}
 ?>
 <![endif]-->
 </head>
@@ -116,7 +123,7 @@ js::import($jsRoot . 'jquery/placeholder/min.js');
         <?php if(isset($config->site->logo)):?>
         <?php $logo = json_decode($config->site->logo);?>
         <div id='siteLogo'>
-          <?php echo html::a($this->config->webRoot, html::image($logo->webPath, "class='logo' title='{$this->config->company->name}'"));?>
+          <?php echo html::a($this->config->homeRoot, html::image($logo->webPath, "class='logo' title='{$this->config->company->name}'"));?>
         </div>
         <?php else: ?>
         <div id='siteName'><h2><?php echo $config->site->name;?></h2></div>
@@ -139,9 +146,9 @@ js::import($jsRoot . 'jquery/placeholder/min.js');
         }
         ?>
       </ul>
-      <?php if($this->config->site->type != 'blog'):?>
+      <?php if(!isset($this->config->site->type) or $this->config->site->type != 'blog'):?>
       <ul class="nav navbar-nav navbar-right">
-        <li><?php echo html::a($config->webRoot, '<i class="icon-home icon-large"></i> ' . $lang->blog->siteHome);?></li>
+        <li><?php echo html::a($config->homeRoot, '<i class="icon-home icon-large"></i> ' . $lang->blog->siteHome);?></li>
       </ul>
       <?php endif;?>
     </div>

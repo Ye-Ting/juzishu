@@ -2,8 +2,8 @@
 /**
  * The model file of article module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     article
  * @version     $Id$
@@ -76,6 +76,7 @@ class articleModel extends model
     /** 
      * Get article list.
      * 
+     * @param  string  $type 
      * @param  array   $categories 
      * @param  string  $orderBy 
      * @param  object  $pager 
@@ -115,11 +116,11 @@ class articleModel extends model
             ->from(TABLE_RELATION)->alias('t1')
             ->leftJoin(TABLE_CATEGORY)->alias('t2')->on('t1.category = t2.id')
             ->where('t2.type')->eq($type)
-            ->beginIf($categories)->andWhere('t1.category')->in($categories)->fi()
             ->fetchGroup('article', 'id');
 
         /* Assign categories to it's article. */
         foreach($articles as $article) $article->categories = isset($categories[$article->id]) ? $categories[$article->id] : array();
+        foreach($articles as $article) $article->category   = current($article->categories);
 
         /* Get images for these articles. */
         $images = $this->loadModel('file')->getByObject($type, array_keys($articles), $isImage = true);
@@ -143,6 +144,7 @@ class articleModel extends model
             ->where('type')->eq('comment')
             ->andWhere('objectType')->eq('article')
             ->andWhere('objectID')->in($articleIdList)
+            ->andWhere('status')->eq(1)
             ->groupBy('objectID')
             ->fetchPairs('objectID', 'count');
         foreach($articles as $article) $article->comments = isset($comments[$article->id]) ? $comments[$article->id] : 0;
@@ -233,7 +235,7 @@ class articleModel extends model
 
         $this->app->loadClass('pager', true);
         $pager = new pager($recTotal = 0, $recPerPage = $count, 1);
-        return $this->getList($type, $family, 'id_desc', $pager);
+        return $this->getList($type, $family, 'addedDate_desc', $pager);
     }
 
     /**
@@ -285,17 +287,21 @@ class articleModel extends model
             ->add('editedDate', $now)
             ->add('type', $type)
             ->add('order', 0)
-            ->stripTags('content', $this->config->allowedTags->admin)
+            ->setIF(!$this->post->isLink, 'link', '')
+            ->stripTags('content,link', $this->config->allowedTags->admin)
             ->get();
 
         $article->keywords = seo::unify($article->keywords, ',');
         $article->alias    = seo::unify($article->alias, '-');
+        $article->content  = $this->rtrimContent($article->content);
 
         $this->dao->insert(TABLE_ARTICLE)
-            ->data($article, $skip = 'categories,uid')
+            ->data($article, $skip = 'categories,uid,isLink')
             ->autoCheck()
-            ->batchCheckIF($type != 'page', $this->config->article->require->create, 'notempty')
-            ->batchCheckIF($type == 'page', $this->config->article->require->page, 'notempty')
+            ->batchCheckIF($type != 'page' and !$this->post->isLink, $this->config->article->require->edit, 'notempty')
+            ->batchCheckIF($type == 'page' and !$this->post->isLink, $this->config->article->require->page, 'notempty')
+            ->batchCheckIF($type != 'page' and $this->post->isLink, $this->config->article->require->link, 'notempty')
+            ->batchCheckIF($type == 'page' and $this->post->isLink, $this->config->article->require->pageLink, 'notempty')
             ->checkIF(($type == 'page') and $this->post->alias, 'alias', 'unique', "type='page'")
             ->exec();
         $articleID = $this->dao->lastInsertID();
@@ -309,6 +315,7 @@ class articleModel extends model
         $this->loadModel('tag')->save($article->keywords);
 
         if($type != 'page') $this->processCategories($articleID, $type, $this->post->categories);
+
         return $articleID;
     }
 
@@ -325,21 +332,25 @@ class articleModel extends model
         $category = array_keys($article->categories);
 
         $article = fixer::input('post')
-            ->stripTags('content', $this->config->allowedTags->admin)
+            ->stripTags('content,link', $this->config->allowedTags->admin)
             ->join('categories', ',')
             ->add('editor', $this->app->user->account)
             ->add('editedDate', helper::now())
+            ->setIF(!$this->post->isLink, 'link', '')
             ->get();
 
         $article->keywords = seo::unify($article->keywords, ',');
         $article->alias    = seo::unify($article->alias, '-');
-        
+        $article->content  = $this->rtrimContent($article->content);
+
         $this->dao->update(TABLE_ARTICLE)
-            ->data($article, $skip = 'categories,uid')
+            ->data($article, $skip = 'categories,uid,isLink')
             ->autoCheck()
-            ->batchCheckIF($type != 'page', $this->config->article->require->edit, 'notempty')
-            ->batchCheckIF($type == 'page', $this->config->article->require->page, 'notempty')
-            ->checkIF(($type == 'page') and $this->post->alias, 'alias', 'unique', "type='page'")
+            ->batchCheckIF($type != 'page' and !$this->post->isLink, $this->config->article->require->edit, 'notempty')
+            ->batchCheckIF($type == 'page' and !$this->post->isLink, $this->config->article->require->page, 'notempty')
+            ->batchCheckIF($type != 'page' and $this->post->isLink, $this->config->article->require->link, 'notempty')
+            ->batchCheckIF($type == 'page' and $this->post->isLink, $this->config->article->require->pageLink, 'notempty')
+            ->checkIF(($type == 'page') and $this->post->alias, 'alias', 'unique', "type='page' and id<>{$articleID}")
             ->where('id')->eq($articleID)
             ->exec();
 
@@ -415,6 +426,7 @@ class articleModel extends model
     public function createPreviewLink($articleID)
     {
         $article = $this->getByID($articleID);
+        if(empty($article)) return null;
         $module  = $article->type;
         $param   = "articleID=$articleID";
         if($article->type != 'page')
@@ -428,71 +440,69 @@ class articleModel extends model
             $alias = "name=$article->alias";
         }
 
-        return commonModel::createFrontLink($module, 'view', $param, $alias);
+        $link = commonModel::createFrontLink($module, 'view', $param, $alias);
+        if($article->link) $link = $article->link;
+
+        return $link;
     }
-
-        /**
-     * Get articles of a user.
-     * 
-     * @param string $account       the account
-     * @param string $pager         the pager object
-     * @access public
-     * @return array
-     */
-    public function getByUser($account, $pager)
-    {
-        $articles = $this->dao->select('*')
-            ->from(TABLE_ARTICLE)
-            ->where('author')->eq($account)
-            ->orderBy('editedDate desc')
-            ->page($pager)
-            ->fetchAll('id');
-
-        $this->setRealNames($articles);
-
-        return $this->process($articles);
-    }
-
 
     /**
-     * Set real name for author and editor of articles.
+     * Delete '<p><br /></p>' if it at string's last. 
      * 
-     * @param  array     $articles 
+     * @param  string    $content 
      * @access public
-     * @return void
+     * @return string
      */
-    public function setRealNames($articles)
+    public function rtrimContent($content)
     {
-        $speakers = array();
-        foreach($articles as $article)
+        /* Delete empty line such as '<p><br /></p>' if article content has it at last */
+        $res   = '';
+        $match = '/(\s+?<p><br \/>\s+?<\/p>)+$/';
+        preg_match($match, $content, $res);
+        if(isset($res[0]))
         {
-            $speakers[] = $article->author;
-            $speakers[] = $article->editor;
-            // $speakers[] = $article->repliedBy;
+            $content = substr($content, 0, strlen($content) - strlen($res[0]));
         }
-
-        $speakers = $this->loadModel('user')->getRealNamePairs($speakers);
-
-        foreach($articles as $article) 
-        {
-           $article->authorRealname    = !empty($article->author) ? $speakers[$article->author] : '';
-           $article->editorRealname    = !empty($article->editor) ? $speakers[$article->editor] : '';
-           // $article->repliedByRealname = !empty($article->repliedBy) ? $speakers[$article->repliedBy] : '';
-        }
+        return $content;
     }
 
+    /**
+     * Set css.
+     * 
+     * @param  int      $articleID 
+     * @access public
+     * @return int
+     */
+    public function setCss($articleID)
+    {
+        $data = fixer::input('post')
+            ->add('editor', $this->app->user->account)
+            ->add('editedDate', helper::now())
+            ->stripTags('css', $this->config->allowedTags->admin)
+            ->get();
+
+        $this->dao->update(TABLE_ARTICLE)->data($data, $skip = 'uid')->autoCheck()->where('id')->eq($articleID)->exec();
+        
+        return !dao::isError();
+    }
 
     /**
-     * Process articles.
+     * Set js.
      * 
-     * @param  array    $articles 
+     * @param  int      $articleID 
      * @access public
-     * @return array
+     * @return int
      */
-    public function process($articles)
+    public function setJs($articleID)
     {
-        // TODO 显示控制 20140809 eting 
+        $data = fixer::input('post')
+            ->stripTags('js', $this->config->allowedTags->admin)
+            ->add('editor', $this->app->user->account)
+            ->add('editedDate', helper::now())
+            ->get();
 
-        return $articles;
+        $this->dao->update(TABLE_ARTICLE)->data($data, $skip = 'uid')->autoCheck()->where('id')->eq($articleID)->exec();
+        
+        return !dao::isError();
     }
 }

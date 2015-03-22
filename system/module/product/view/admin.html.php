@@ -2,8 +2,8 @@
 /**
  * The admin view file of product of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan <guanxiying@xirangit.com>
  * @package     product
  * @version     $Id$
@@ -13,6 +13,7 @@
 <?php include '../../common/view/header.admin.html.php';?>
 <?php include '../../common/view/treeview.html.php';?>
 <?php js::set('categoryID', $categoryID);?>
+<?php js::set('currency', $lang->product->currency);?>
 <div class='panel'>
   <div class='panel-heading'>
   <strong><i class="icon-list-ul"></i> <?php echo $lang->product->list;?></strong>
@@ -28,8 +29,8 @@
         <th class='w-p10'><?php commonModel::printOrderLink('amount', $orderBy, $vars, $lang->product->amount);?></th>
         <th class='w-160px'><?php commonModel::printOrderLink('addedDate', $orderBy, $vars, $lang->product->addedDate);?></th>
         <th class='w-60px'><?php commonModel::printOrderLink('status', $orderBy, $vars, $lang->product->status);?></th>
-        <th class='w-60px'><?php commonModel::printOrderLink('views', $orderBy, $vars, $lang->product->views);?></th>
-        <th class='w-200px'><?php echo $lang->actions;?></th>
+        <th class='w-70px'><?php commonModel::printOrderLink('views', $orderBy, $vars, $lang->product->views);?></th>
+        <th class='w-260px'><?php echo $lang->actions;?></th>
       </tr>
     </thead>
     <tbody>
@@ -48,10 +49,13 @@
           $categoryAlias = !empty($categories) ? current($categories)->alias : '';
           $changeStatus  = $product->status == 'normal' ? 'offline' : 'normal';
           echo html::a($this->createLink('product', 'edit', "productID=$product->id"), $lang->edit);
-          echo html::a($this->createLink('file',    'browse', "objectType=product&objectID=$product->id"), $lang->product->files, "data-toggle='modal' data-width='1000'");
-          echo html::a($this->createLink('product', 'delete', "productID=$product->id"), $lang->delete, "class='deleter'");
+          echo html::a($this->createLink('file',    'browse', "objectType=product&objectID=$product->id&isImage=0"), $lang->product->files, "data-toggle='modal' data-width='1000'");
+          echo html::a($this->createLink('file',    'browse', "objectType=product&objectID=$product->id&isImage=1"), $lang->product->images, "data-toggle='modal' data-width='1000'");
           echo html::a($this->createLink('product', 'changeStatus', "productID=$product->id&status=$changeStatus"), $lang->product->statusList[$changeStatus], "class='changeStatus'");
           echo html::a(commonModel::createFrontLink('product', 'view',  "productID=$product->id", "name=$product->alias&category=$categoryAlias"), $lang->preview, "target='_blank'");
+          echo html::a($this->createLink('product', 'delete', "productID=$product->id"), $lang->delete, "class='deleter'");
+          echo html::a($this->createLink('product', 'setcss', "productID=$product->id"), $lang->product->css, "data-toggle='modal'");
+          echo html::a($this->createLink('product', 'setjs',  "productID=$product->id"), $lang->product->js, "data-toggle='modal'");
           ?>
         </td>
       </tr>

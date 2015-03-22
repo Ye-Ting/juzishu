@@ -2,8 +2,8 @@
 /**
  * The browse view file of company module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan <guanxiying@xirangit.com>
  * @package     company
  * @version     $Id$
@@ -49,9 +49,18 @@
             </div>
           </td><td></td>
         </tr>
-         <tr>
+        <tr>
           <th><?php echo $lang->company->wangwang;?></th> 
           <td><?php echo html::input('wangwang', isset($contact->wangwang) ? $contact->wangwang : '', "class='form-control'");?></td><td></td>
+        </tr>
+        <tr>
+          <th><?php echo $lang->company->site;?></th> 
+          <td>
+            <div class="input-group">
+              <span class="input-group-addon">http://</span>
+              <?php echo html::input('site', isset($contact->site) ? $contact->site : '', "class='form-control'");?>
+            </div>
+          </td><td></td>
         </tr>
         <tr>
           <th><?php echo $lang->company->address?></th> 

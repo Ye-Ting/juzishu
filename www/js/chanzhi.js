@@ -1,3 +1,6 @@
+/* Set trigger modal default name to 'ajaxModal'. */
+(function(){$.ModalTriggerDefaults = {name: 'ajaxModal'};})();
+
 $.extend(
 {
     setAjaxForm: function(formID, callback)
@@ -64,7 +67,7 @@ $.extend(
                         function distroy(){submitButton.popover('destroy')}
                         setTimeout(distroy,2000);
                     }
-                    $('#responser').html(response.message).addClass('red f-12px').show().delay(5000).fadeOut(100);
+                    else $('#responser').html(response.message).addClass('red f-12px').show().delay(5000).fadeOut(100);
                 }
 
                 /* The result.message is just a object. */
@@ -192,7 +195,16 @@ $.extend(
             if(!url) url = $(this).data('rel');
             if(!url) return false;
 
-            target.load(url, callback);
+            target.attr('rel', url);
+
+            target.load(url, function()
+            {
+                if(target.hasClass('modal'))
+                {
+                    $.ajustModalPosition('fit', target);
+                }
+                callback && callback();
+            });
 
             return false;
         });
@@ -258,26 +270,50 @@ $.extend(
     {
         $(document).on('click', selector, function()
         {
-            if(confirm(v.lang.confirmDelete))
+            var deleter = $(this);
+            bootbox.confirm(v.lang.confirmDelete, function(result)
             {
-                var deleter = $(this);
-                deleter.text(v.lang.deleteing);
-
-                $.getJSON(deleter.attr('href'), function(data) 
+                if(result)
                 {
-                    if(data.result == 'success')
+                    deleter.text(v.lang.deleteing);
+
+                    $.getJSON(deleter.attr('href'), function(data) 
                     {
-                        if(deleter.parents('#ajaxModal').size()) return $.reloadAjaxModal(1200);
-                        if(data.locate) return location.href = data.locate;
-                        return location.reload();
-                    }
-                    else
-                    {
-                        alert(data.message);
-                    }
-                });
-            }
-            return false;
+                        if(data.result == 'success')
+                        {
+                            if(deleter.parents('#ajaxModal').size())
+                            {
+                                if(typeof(data.locate) != 'undefined' && data.locate)
+                                {
+                                    $('#ajaxModal').attr('rel', data.locate).load(data.locate);
+                                }
+                                else
+                                {
+                                    $.reloadAjaxModal(1200);
+                                }
+                            }
+                            else
+                            {
+                                if(typeof(data.locate) != 'undefined' && data.locate)
+                                {
+                                    location.href = data.locate;
+                                }
+                                else
+                                {
+                                    location.reload();
+                                }
+                            }
+                            return true;
+                        }
+                        else
+                        {
+                            alert(data.message);
+                        }
+                    });
+                }
+                return true;
+           });
+           return false;
         });
     },
 
@@ -373,44 +409,6 @@ $.extend(
     },
 
     /**
-     * Add ajaxModal container if there's an <a> tag with data-toggle=modal.
-     * 
-     * @access public
-     * @return void
-     */
-    setAjaxModal: function()
-    {
-        if($('[data-toggle=modal]').size() == 0) return false;
-
-        /* Addpend modal div. */
-        $('<div id="ajaxModal" class="modal fade"></div>').appendTo('body');
-
-        /* Set the data target for modal. */
-        $('[data-toggle=modal]').attr('data-target', '#ajaxModal');
-
-        $('[data-toggle=modal]').click(function()
-        {
-            var $e = $(this);
-            var url = $e.attr('href') || $e.data('url');
-            $('#ajaxModal').load(url, function()
-            {
-                /* Set the width of modal dialog. */
-                if($e.data('width'))
-                {
-                    var modalWidth = parseInt($e.data('width'));
-                    $(this).data('width', modalWidth).find('.modal-dialog').css('width', modalWidth);
-                }
-
-                /* show the modal dialog. */
-                $('#ajaxModal').modal({show:true,backdrop:$e.data('backdrop'),keyboard:$e.data('keyboard')});
-            });
-
-            /* Save the href to rel attribute thus we can save it. */
-            $('#ajaxModal').attr('rel', url);
-        });
-    },
-
-    /**
      * Reload ajax modal.
      *
      * @param int duration 
@@ -419,20 +417,29 @@ $.extend(
      */
     reloadAjaxModal: function(duration)
     {
-       if(typeof(duration) == 'undefined') duration = 1000;
-       setTimeout(function(){$('#ajaxModal').load($('#ajaxModal').attr('rel'), function(){$(this).find('.modal-dialog').css('width', $(this).data('width'))})}, duration);
+        if(typeof(duration) == 'undefined') duration = 1000;
+        setTimeout(function()
+        { 
+            var url = $('#ajaxModal').attr('rel') || $('#ajaxModal').attr('ref');
+            $('#ajaxModal .modal-body').load(url + ' .modal-body', function()
+            {
+                $(this).find('.modal-dialog').css('width', $(this).data('width'));
+                $.ajustModalPosition('fit', '#ajaxModal');
+            });
+        }, duration);
     }
 });
 
-/**
- * Resize image's max width and max height to made it center and middle.
- *
- * @param   int   maxWidth
- * @param   int   maxHeight
- * @return void
- */
+/* jQuery extensions */
 (function($) 
 {
+    /**
+     * Resize image's max width and max height to made it center and middle.
+     *
+     * @param   int   maxWidth
+     * @param   int   maxHeight
+     * @return void
+     */
     jQuery.fn.resizeImage = function(maxWidth, maxHeight)
     { 
         container = $(this).parent();
@@ -446,6 +453,32 @@ $.extend(
         $(this).css('max-height', maxHeight);
 
         return true;
+    };
+
+    /**
+     * Force to break all letters
+     *
+     * @param   string   filter
+     * @param   minLen   min text length
+     * @return void
+     */
+    jQuery.fn.breakAll = function(filter, minLen)
+    {
+        return $(this).each(function()
+        {
+            var $set = $(this), $e, text;
+            if(filter) $set = $set.find(filter);
+            if(!minLen) minLen = 10;
+            $set.each(function()
+            {
+                $e = $(this);
+                if($e.children().length) return;
+                text = $e.text();
+                if(text.length < minLen || text.indexOf(' ') > -1) return;
+                
+                $e.css({'word-break': 'break-all', 'white-space': 'normal'});
+            });
+        });
     };
 })(jQuery);
 
@@ -470,6 +503,7 @@ function createLink(moduleName, methodName, vars, viewType)
     if(config.requestType == 'PATH_INFO')
     {
         link = config.webRoot + moduleName + config.requestFix + methodName;
+        if(config.langCode != '') link = '/' + config.langCode + link;
         if(vars)
         {
             if(config.pathType == "full")
@@ -486,6 +520,7 @@ function createLink(moduleName, methodName, vars, viewType)
     else
     {
         link = config.router + '?' + config.moduleVar + '=' + moduleName + '&' + config.methodVar + '=' + methodName + '&' + config.viewVar + '=' + viewType;
+        if(config.langCode != '') link = link + '&l=' + config.langCode;
         if(vars) for(i = 0; i < vars.length; i ++) link += '&' + vars[i][0] + '=' + vars[i][1];
     }
     return link;
@@ -563,8 +598,9 @@ function setGo2Top()
         if($(window).scrollTop() < 100) $('#go2top').fadeOut(); else $('#go2top').fadeIn();
     }).resize(function ()
     {
-        var parent = $('#go2top').closest('.page-container');
+        var parent = $('#go2top').closest('.page-container').find('.page-content');
         $('#go2top').css('left', parent.offset().left + parent.width() + 30);
+        if(parent.width() == $('.m-index-index').width()) $('#go2top').css('left', parent.width() - 90);
     }).scroll().resize();
 
     $('#go2top').tooltip({container: 'body', placement: 'left'})
@@ -594,79 +630,116 @@ function autoBlockGrid()
         {
             if(count <= 3)
             {
-                cols.attr('class', 'col-auto col-md-' + (12/count)).data('grid', 12/count);
+                cols.attr('class', 'col-auto col-md-' + (12/count)).attr('data-grid', 12/count);
             }
             else
             {
-                cols.attr('class', 'col-auto col-md-' + dGrid).data('grid', dGrid);
+                cols.attr('class', 'col-auto col-md-' + dGrid).attr('data-grid', dGrid);
             }
             cols.data('handled', true);
         }
         else
         {
-            col.attr('class', 'col-auto col-md-' + dGrid).data('grid', dGrid).data('handled', true);
+            col.attr('class', 'col-auto col-md-' + dGrid).attr('data-grid', dGrid).data('handled', true);
         }
     });
 
     $('.block-list .panel-block .cards').each(function()
     {
         var $this = $(this);
-        var grid = $this.closest('[class*="col-"]').data('grid');
-        var cards = $this.find('[class*="col-"]');
+        var parentGrid = $this.closest('[class*="col-"]').parent().closest('[class*="col-"]').data('grid') || 12;
+        var grid = parentGrid * $this.closest('[class*="col-"]').data('grid') / 12,
+            cards = $this.find('[class*="col-"]'),
+            layout = $this.data('layout');
 
-        if(grid >= 9) cards.attr('class', 'col-md-4 col-sm-6');
-        else if(grid >= 5) cards.attr('class', 'col-md-6');
-        else cards.attr('class', 'col-md-12');
+        if(layout == 'horizontal') cards.attr('class', 'col-md-3 col-sm-4 col-xs-6');
+        else if(layout == 'vertical') cards.attr('class', 'col-lg-12');
+        else
+        {
+            if(grid >= 9) cards.attr('class', 'col-md-4 col-sm-6');
+            else if(grid >= 5) cards.attr('class', 'col-md-6');
+            else cards.attr('class', 'col-md-12');
+        }
     });
 
     /* ajust block height */
-    var lastWidth = 0;
+    var lastWidth = 0, winWidth;
     function ajustBlockHeight()
     {
-        var width = $('body').width();
-        if(width == lastWidth) return;
-        lastWidth = width;
+        winWidth = $('body').width();
+        if(winWidth == lastWidth) return;
+        lastWidth = winWidth;
+        ajustRowHeight($(".block-list > .row > [class*='col-'] > .row"), true);
+        ajustRowHeight($('.block-list > .row'), false);
+    }
 
-        var blocks = $('.block-list .row .panel-block');
-        if(!blocks.length) return;
+    function ajustRowHeight($rows, isSub)
+    {
+        var $blocks = $rows.children("[class*='col-']").children('.panel-block, .row');
+        if(!$blocks.length) return;
 
-        if(width < 992)
+        if(winWidth < 992)
         {
-            blocks.css('height', 'auto');
+            $blocks.css('height', 'auto');
         }
         else
         {
-            blocks.data('height', 0);
+            $blocks.data('height', 0);
 
-            $('.block-list .row').each(function()
+            $rows.each(function()
             {
-                var i = 0, j = 0, k;
+                var nextRow = 0, sum = 0, row = 0, grid;
                 $(this).children("[class*='col-']").each(function()
                 {
-                    var col = $(this);
-                    j += parseInt(col.data('grid'));
-                    k = i;
-                    if(j >= 12)
+                    var col  = $(this);
+                        row  = nextRow;
+                        grid = parseInt(col.data('grid'));
+                    sum += grid;
+                    if(grid  == 12)
                     {
-                        i++;
-                        if(j > 12) k++;
-                        j = 0;
+                        if(sum > 12 || nextRow > 0)
+                        {
+                            row++;
+                        }
+                        nextRow = row + 1;
+                        sum = 0;
                     }
-                    col.attr('data-row', k);
+                    else if(sum == 12)
+                    {
+                        nextRow = row + 1;
+                        sum = 0;
+                    }
+                    else if(sum > 12)
+                    {
+                        row++;
+                        nextRow = row;
+                        sum = grid;
+                    }
+                    col.attr('data-row', row);
                 });
             });
 
-            blocks.each(function()
+            $blocks.each(function()
             {
                 var block = $(this);
                 if(block.data('height')) return;
 
-                var row    = block.closest('.row');
-                var rowNo  = block.parent().data('row');
+                var row    = block.closest('.row'),
+                    col    = block.parent();
+                if(col.data('grid') == 12)
+                {
+                    block.data('height', 'auto');
+                    block.css('height', 'auto');
+                    return;
+                }
+                var rowNo  = col.data('row');
                 var height = 0;
-                row.find("[data-row='" + rowNo + "']")
-                   .each(function(){height = Math.max($(this).find('.panel-block').outerHeight(), height);})
-                   .find('.panel-block')
+                row.children("[data-row='" + rowNo + "']")
+                   .each(function()
+                    {
+                        height = Math.max($(this).children('.row').outerHeight() - 20, Math.max($(this).children('.panel-block').outerHeight(), height));
+                    })
+                   .children('.panel-block')
                    .css('height', height).data('height', height);
             });
         }

@@ -2,8 +2,8 @@
 /**
  * The model file of product module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan <guanxiying@xirangit.com>
  * @package     product
  * @version     $Id$
@@ -99,11 +99,11 @@ class productModel extends model
             ->from(TABLE_RELATION)->alias('t1')
             ->leftJoin(TABLE_CATEGORY)->alias('t2')->on('t1.category = t2.id')
             ->where('t2.type')->eq('product')
-            ->beginIF($categories)->andWhere('t1.category')->in($categories)->fi()
             ->fetchGroup('product', 'id');
 
         /* Assign categories to it's product. */
         foreach($products as $product) $product->categories = !empty($categories[$product->id]) ? $categories[$product->id] : array();
+        foreach($products as $product) $product->category = current($product->categories);
 
         /* Get images for these products. */
         $images = $this->loadModel('file')->getByObject('product', array_keys($products), $isImage = true);
@@ -117,8 +117,8 @@ class productModel extends model
             if(!empty($product->image->list)) $product->image->primary = $product->image->list[0];
         }
         
-        /* Assign summary to it's product. */
-        foreach($products as $product) $product->summary = empty($product->summary) ? helper::substr(strip_tags($product->content), 250) : $product->summary;
+        /* Assign desc to it's product. */
+        foreach($products as $product) $product->desc = empty($product->desc) ? helper::substr(strip_tags($product->content), 250) : $product->desc;
 
         return $products;
     }
@@ -132,31 +132,14 @@ class productModel extends model
      * @access public
      * @return array
      */
-    public function getPairs($categories, $orderBy, $pager = null)
-    {
-        return $this->dao->select('t1.id, t1.name, t1.alias')->from(TABLE_PRODUCT)->alias('t1')
-            ->leftJoin(TABLE_RELATION)->alias('t2')
-            ->on('t1.id = t2.id')
-            ->beginIF($categories)->where('t2.category')->in($categories)->fi()
-            ->orderBy($orderBy)
-            ->page($pager, false)
-            ->fetchAll('id');
-    }
-
-    /**
-     * Get product pair.
-     * 
-     * @param string $categories 
-     * @access public
-     * @return array
-     */
-    public function getPair($categories)
+    public function getPairs($categories, $orderBy = '`order`', $pager = null)
     {
         return $this->dao->select('t1.id, name')->from(TABLE_PRODUCT)->alias('t1')
             ->leftJoin(TABLE_RELATION)->alias('t2')
             ->on('t1.id = t2.id')
             ->beginIF($categories)->where('t2.category')->in($categories)->fi()
-            ->orderBy('id_desc')
+            ->orderBy($orderBy)
+            ->page($pager, false)
             ->fetchPairs('id', 'name');
     }
 
@@ -178,7 +161,7 @@ class productModel extends model
 
         $this->app->loadClass('pager', true);
         $pager = new pager($recTotal = 0, $recPerPage = $count, 1);
-        return $this->getList($family, 'id_desc', $pager);
+        return $this->getList($family, 'addedDate_desc', $pager);
     }
 
     /**
@@ -205,28 +188,28 @@ class productModel extends model
     /**
      * Get the prev and next product.
      * 
-     * @param  int    $current  the current product id.
+     * @param  int    $current  the current product order.
      * @param  int    $category the category id.
      * @access public
      * @return array
      */
     public function getPrevAndNext($current, $category)
     {
-       $prev = $this->dao->select('t1.id, name, alias')->from(TABLE_PRODUCT)->alias('t1')
+       $prev = $this->dao->select('t1.id, name, alias, t1.order')->from(TABLE_PRODUCT)->alias('t1')
            ->leftJoin(TABLE_RELATION)->alias('t2')->on('t1.id = t2.id')
            ->where('t2.category')->eq($category)
             ->beginIF(RUN_MODE == 'front')->andWhere('t1.status')->eq('normal')->fi()
-           ->andWhere('t2.id')->lt($current)
-           ->orderBy('t2.id_desc')
+           ->andWhere('t1.order')->lt($current)
+           ->orderBy('t1.order_desc')
            ->limit(1)
            ->fetch();
 
-       $next = $this->dao->select('t1.id, name, alias')->from(TABLE_PRODUCT)->alias('t1')
+       $next = $this->dao->select('t1.id, name, alias, t1.order')->from(TABLE_PRODUCT)->alias('t1')
            ->leftJoin(TABLE_RELATION)->alias('t2')->on('t1.id = t2.id')
            ->where('t2.category')->eq($category)
             ->beginIF(RUN_MODE == 'front')->andWhere('t1.status')->eq('normal')->fi()
-           ->andWhere('t2.id')->gt($current)
-           ->orderBy('t2.id')
+           ->andWhere('t1.order')->gt($current)
+           ->orderBy('t1.order')
            ->limit(1)
            ->fetch();
 
@@ -244,10 +227,11 @@ class productModel extends model
         $now = helper::now();
         $product = fixer::input('post')
             ->join('categories', ',')
-            ->stripTags('content', $this->config->allowedTags->admin)
+            ->stripTags('content,desc', $this->config->allowedTags->admin)
             ->setDefault('price', 0)
             ->setDefault('amount', 0)
             ->setDefault('promotion', 0)
+            ->setDefault('order', 0)
             ->add('author', $this->app->user->account)
             ->add('addedDate', $now)
             ->add('editedDate', $now)
@@ -262,7 +246,10 @@ class productModel extends model
             ->batchCheck($this->config->product->require->create, 'notempty')
             ->checkIF($product->mall, 'mall', 'URL')
             ->exec();
+
         $productID = $this->dao->lastInsertID();
+
+        if(!$this->post->order) $this->dao->update(TABLE_PRODUCT)->set('order')->eq($productID)->where('id')->eq($productID)->exec();
 
         if(!$this->saveAttributes($productID)) return false;
 
@@ -273,6 +260,7 @@ class productModel extends model
 
         $this->loadModel('tag')->save($product->keywords);
         $this->processCategories($productID, $this->post->categories);
+
         return $productID;
     }
 
@@ -287,7 +275,7 @@ class productModel extends model
     {
         $product = fixer::input('post')
             ->join('categories', ',')
-            ->stripTags('content', $this->config->allowedTags->admin)
+            ->stripTags('content,desc', $this->config->allowedTags->admin)
             ->setDefault('price', 0)
             ->setDefault('amount', 0)
             ->setDefault('promotion', 0)
@@ -345,6 +333,26 @@ class productModel extends model
         }
         return !dao::isError();
     }
+
+    /**
+     * Set currency. 
+     * 
+     * @access public
+     * @return void
+     */
+    public function currency()
+    {
+        $currency = new stdclass();
+        $currency->owner   = 'system';
+        $currency->module  = 'common';
+        $currency->section = 'product';
+        $currency->key     = 'currency';
+        $currency->value   = $this->post->currency;
+
+        $this->dao->replace(TABLE_CONFIG)->data($currency)->exec();
+
+        return !dao::isError();
+    }
         
     /**
      * Delete a product.
@@ -397,5 +405,45 @@ class productModel extends model
 
            $this->dao->insert(TABLE_RELATION)->data($data)->exec();
        }
+    }
+
+    /**
+     * Set css.
+     * 
+     * @param  int      $productID 
+     * @access public
+     * @return int
+     */
+    public function setCss($productID)
+    {
+        $data = fixer::input('post')
+            ->add('editor', $this->app->user->account)
+            ->stripTags('css', $this->config->allowedTags->admin)
+            ->add('editedDate', helper::now())
+            ->get();
+
+        $this->dao->update(TABLE_PRODUCT)->data($data, $skip = 'uid')->autoCheck()->where('id')->eq($productID)->exec();
+        
+        return !dao::isError();
+    }
+
+    /**
+     * Set js.
+     * 
+     * @param  int      $productID 
+     * @access public
+     * @return int
+     */
+    public function setJs($productID)
+    {
+        $data = fixer::input('post')
+            ->stripTags('js', $this->config->allowedTags->admin)
+            ->add('editor', $this->app->user->account)
+            ->add('editedDate', helper::now())
+            ->get();
+
+        $this->dao->update(TABLE_PRODUCT)->data($data, $skip = 'uid')->autoCheck()->where('id')->eq($productID)->exec();
+        
+        return !dao::isError();
     }
 }

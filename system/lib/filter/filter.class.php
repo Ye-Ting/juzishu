@@ -80,7 +80,7 @@ class validater
      */
     public static function checkFloat($var, $decimal = '.')
     {
-        return filter_var($var, FILTER_VALIDATE_FLOAT, array('options' => array('decimail' => $decimal)));
+        return filter_var($var, FILTER_VALIDATE_FLOAT, array('options' => array('decimal' => $decimal)));
     }
 
     /**
@@ -330,6 +330,19 @@ class validater
     }
 
     /**
+     * Check file name.
+     * 
+     * @param  string    $var 
+     * @static
+     * @access public
+     * @return bool
+     */
+    public static function checkFileName($var)
+    {
+        return !preg_match('/>+|:+|<+/', $var);
+    }
+
+    /**
      * Call a function to check it.
      * 
      * @param  mixed  $var 
@@ -359,7 +372,14 @@ class fixer
      */
     private $data;
 
+    /**
+     * Striped fields not specialchars.
+     * 
+     * @var array 
+     * @access private
+     */
     private $stripedFields = array();
+
     /**
      * The construction function, according the scope, convert it to object.
      * 
@@ -521,16 +541,31 @@ class fixer
      * Strip tags 
      * 
      * @param  string $fieldName 
-     * @param  string $allowableTags 
+     * @param  string $allowedTags 
      * @access public
-     * @return object fixer object
+     * @return void
      */
-    public function stripTags($fieldName, $allowableTags)
+    public function stripTags($fieldName, $allowedTags)
     {
+        global $app;
+        $app->loadClass('purifier', true);
+        $config = HTMLPurifier_Config::createDefault();
+        /* Disable caching. */
+        $config->set('Cache.DefinitionImpl', null);
+        $purifier = new HTMLPurifier($config);
+        $def = $config->getHTMLDefinition(true);
+        $def->addAttribute('a', 'target', 'Enum#_blank,_self,_target,_top');
+
         $fields = $this->processFields($fieldName);
         foreach($fields as $fieldName) 
         {
-            if(!in_array($fieldName, $this->stripedFields)) $this->data->$fieldName = strip_tags($this->data->$fieldName, $allowableTags);
+            if(version_compare(phpversion(), '5.4', '<') and get_magic_quotes_gpc()) $this->data->$fieldName = stripslashes($this->data->$fieldName);
+
+            if(!in_array($fieldName, $this->stripedFields))
+            {
+                if(RUN_MODE != 'admin') $this->data->$fieldName = $purifier->purify($this->data->$fieldName);
+                $this->data->$fieldName = strip_tags($this->data->$fieldName, $allowedTags);
+            }
             $this->stripedFields[] = $fieldName;
         }
         return $this;
@@ -704,7 +739,7 @@ class fixer
         foreach($this->data as $field => $value)
         {
             if(!isset($fields[$field])) unset($this->data->$field);
-            if(!in_array($field, $this->tripedFields)) $this->data->$field = $this->specialChars($this->data->field);
+            if(!in_array($field, $this->stripedFields)) $this->data->$field = $this->specialChars($this->data->field);
         }
 
         return $this->data;

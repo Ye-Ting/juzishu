@@ -2,8 +2,8 @@
 /**
  * The model file of file module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     file
  * @version     $Id$
@@ -51,14 +51,15 @@ class fileModel extends model
             $file->title = $file->title . ".$file->extension";
             if($file->isImage)
             {
-                $imagesHtml .= "<li class='file-image file-{$file->extension}'>" . html::a(helper::createLink('file', 'download', "fileID=$file->id&mouse=left"), html::image($file->smallURL), "target='_blank' data-toggle='lightbox' data-width='{$file->width}' data-height='{$file->height}'") . '</li>';
+                if($file->objectType == 'product') continue;
+                $imagesHtml .= "<li class='file-image file-{$file->extension}'>" . html::a(helper::createLink('file', 'download', "fileID=$file->id&mouse=left"), html::image($file->smallURL), "target='_blank' data-toggle='lightbox' data-img-width='{$file->width}' data-img-height='{$file->height}' title='{$file->title}'") . '</li>';
             }
             else
             {
-                $filesHtml .= "<li class='file file-{$file->extension}'>" . html::a(helper::createLink('file', 'download', "fileID=$file->id&mouse=left"), $file->title, "target='_blank'") . '</li>';
+                $filesHtml .= "<li class='file file-{$file->extension}'>" . html::a(helper::createLink('file', 'download', "fileID=$file->id&mouse=left"), $file->title, "target='_blank' title='{$file->title}'") . '</li>';
             }
         }
-        echo "<ul class='article-files clearfix'>" . $imagesHtml . $filesHtml . '</ul>';
+        echo "<ul class='files-list clearfix'>" . $imagesHtml . $filesHtml . '</ul>';
     }
 
     /**
@@ -70,14 +71,16 @@ class fileModel extends model
      * @access public
      * @return array
      */
-    public function getByObject($objectType, $objectID, $isImage = false)
+    public function getByObject($objectType, $objectID, $isImage = null)
     {
         /* Get files group by objectID. */
-        $files = $this->dao->select('*')
+        $files = $this->dao->setAutoLang(false)->select('*')
             ->from(TABLE_FILE)
             ->where('objectType')->eq($objectType)
             ->andWhere('objectID')->in($objectID)
-            ->beginIf($isImage)->andWhere('extension')->in($this->config->file->imageExtensions)->orderBy('`primary`')->fi() 
+            ->beginIf(isset($isImage) and $isImage)->andWhere('extension')->in($this->config->file->imageExtensions)->fi() 
+            ->beginIf(isset($isImage) and !$isImage)->andWhere('extension')->notin($this->config->file->imageExtensions)->fi()
+            ->orderBy('`primary`, editor_desc') 
             ->fetchGroup('objectID');
 
         /* Process these files. */
@@ -101,7 +104,7 @@ class fileModel extends model
         $file->smallURL  = '';
         $file->isImage   = false;
 
-        if(in_array(strtolower($file->extension), $this->config->file->imageExtensions) !== false)
+        if(in_array(strtolower($file->extension), $this->config->file->imageExtensions, true) !== false)
         {
             $file->middleURL = $this->webPath . str_replace('f_', 'm_', $file->pathname);
             $file->smallURL  = $this->webPath . str_replace('f_', 's_', $file->pathname);
@@ -138,7 +141,7 @@ class fileModel extends model
      */
     public function getByID($fileID)
     {
-        $file = $this->dao->findById($fileID)->from(TABLE_FILE)->fetch();
+        $file = $this->dao->setAutoLang(false)->findById($fileID)->from(TABLE_FILE)->fetch();
         $file->realPath = $this->savePath . $file->pathname;
         $file->webPath  = $this->webPath . $file->pathname;
         return $this->processFile($file);
@@ -159,12 +162,22 @@ class fileModel extends model
         $now        = helper::now();
         $files      = $this->getUpload();
 
+        $imageSize = array('width' => 0, 'height' => 0);
+
         foreach($files as $id => $file)
         {   
-            $imageSize = array('width' => 0, 'height' => 0);
+            if(strpos($this->config->file->allowed, ',' . $file['extension'] . ',') === false)
+            {
+                if(!move_uploaded_file($file['tmpname'], $this->savePath . $file['pathname'] . '.txt')) return false;
+                $file['pathname'] .= '.txt';
+                $file = $this->saveZip($file);
+            }
+            else
+            {
+                if(!move_uploaded_file($file['tmpname'], $this->savePath . $file['pathname'])) return false;
+            }          
 
-            if(!move_uploaded_file($file['tmpname'], $this->savePath . $file['pathname'])) return false;
-            if(in_array(strtolower($file['extension']), $this->config->file->imageExtensions))
+            if(in_array(strtolower($file['extension']), $this->config->file->imageExtensions, true))
             {
                 $this->compressImage($this->savePath . $file['pathname']);
                 $imageSize = $this->getImageSize($this->savePath . $file['pathname']);
@@ -177,11 +190,45 @@ class fileModel extends model
             $file['extra']      = $extra;
             $file['width']      = $imageSize['width'];
             $file['height']     = $imageSize['height'];
+            $file['lang']       = 'all';
             unset($file['tmpname']);
             $this->dao->insert(TABLE_FILE)->data($file)->exec();
             $fileTitles[$this->dao->lastInsertId()] = $file['title'];
         }
+        $this->loadModel('setting')->setItems('system.common.site', array('lastUpload' => time()));
         return $fileTitles;
+    }
+
+    /**
+     * Save dangerous files to zip. 
+     * 
+     * @param  array    $file 
+     * @access public
+     * @return array
+     */
+    public function saveZip($file)
+    {
+        $this->app->loadClass('pclzip', true);
+        $pathInfo = pathinfo($file['pathname']);
+
+        $uploadedFile = $this->savePath . $file['pathname'];
+        $gbkName      = function_exists('iconv') ? iconv('utf-8', 'gbk', $file['title']) : $file['title'];
+        $tmpFile      = dirname($file['tmpname']) . DS . md5(uniqid()) . DS . $gbkName . '.' . $file['extension'];
+
+        mkdir(dirname($tmpFile));
+        copy($uploadedFile, $tmpFile);
+        $archive = new PclZip($this->savePath . substr($file['pathname'], 0, -4) . '.zip');
+        $list    = $archive->create($tmpFile, PCLZIP_OPT_REMOVE_ALL_PATH);
+        if($list != 0)
+        {
+            unlink($uploadedFile);
+            unlink($tmpFile);
+            rmdir(dirname($tmpFile));
+            $file['pathname']  = substr($file['pathname'], 0, 4) . '.zip';
+            $file['extension'] = 'zip';
+        }
+
+        return $file;
     }
 
     /**
@@ -196,6 +243,20 @@ class fileModel extends model
     }
 
     /**
+     * Check can upload front. 
+     * 
+     * @access public
+     * @return void
+     */
+    public function canUpload()
+    {
+       if(RUN_MODE == 'admin') return true;
+       if(isset($this->config->site->allowUpload) and $this->config->site->allowUpload == 1) return true;
+       if(isset($this->app->user->admin) and $this->app->user->admin == 'super') return true;
+       return false;
+    }
+
+    /**
      * get uploaded files.
      * 
      * @param string $htmlTagName 
@@ -206,6 +267,14 @@ class fileModel extends model
     {
         $files = array();
         if(!isset($_FILES[$htmlTagName])) return $files;
+        if(!$this->canUpload()) return $files;
+        
+        $this->app->loadClass('filter', true);
+
+        $this->app->loadClass('purifier', true);
+        $config = HTMLPurifier_Config::createDefault();
+        $purifier = new HTMLPurifier($config);
+
         /* The tag if an array. */
         if(is_array($_FILES[$htmlTagName]['name']))
         {
@@ -213,9 +282,11 @@ class fileModel extends model
             foreach($name as $id => $filename)
             {
                 if(empty($filename)) continue;
+                if(!validater::checkFileName($filename)) continue;
                 $file['extension'] = $this->getExtension($filename);
                 $file['pathname']  = $this->setPathName($id, $file['extension']);
                 $file['title']     = !empty($_POST['labels'][$id]) ? htmlspecialchars($_POST['labels'][$id]) : str_replace('.' . $file['extension'], '', $filename);
+                $file['title']     = $purifier->purify($file['title']);
                 $file['size']      = $size[$id];
                 $file['tmpname']   = $tmp_name[$id];
                 $files[] = $file;
@@ -223,11 +294,13 @@ class fileModel extends model
         }
         else
         {
-            if(empty($_FILES[$htmlTagName]['name'])) return $files;
+            if(empty($_FILES[$htmlTagName]['name'])) return array();
             extract($_FILES[$htmlTagName]);
+            if(!validater::checkFileName($name)) return array();;
             $file['extension'] = $this->getExtension($name);
             $file['pathname']  = $this->setPathName(0, $file['extension']);
             $file['title']     = !empty($_POST['labels'][0]) ? htmlspecialchars($_POST['labels'][0]) : substr($name, 0, strpos($name, $file['extension']) - 1);
+            $file['title']     = $purifier->purify($file['title']);
             $file['size']      = $size;
             $file['tmpname']   = $tmp_name;
             return array($file);
@@ -244,9 +317,8 @@ class fileModel extends model
      */
     public function getExtension($filename)
     {
-        $extension = pathinfo($filename, PATHINFO_EXTENSION);
-        if(empty($extension)) return 'txt';
-        if(strpos($this->config->file->dangers, strtolower($extension)) !== false) return 'txt';
+        $extension = strtolower(trim(pathinfo($filename, PATHINFO_EXTENSION)));
+        if(empty($extension) or !preg_match('/^[a-z0-9]+$/', $extension) or strlen($extension) > 5) return 'txt';
         return $extension;
     }
 
@@ -294,7 +366,16 @@ class fileModel extends model
     public function setSavePath()
     {
         $savePath = $this->app->getDataRoot() . "upload/" . date('Ym/', $this->now);
-        if(!file_exists($savePath)) @mkdir($savePath, 0777, true);
+        if(!file_exists($savePath)) 
+        {
+            @mkdir($savePath, 0777, true);
+            if(is_writable($savePath) && !file_exists($savePath . DS . 'index.php'))
+            {
+                $fd = @fopen($savePath . DS . 'index.php', "a+");
+                fclose($fd);
+                chmod($savePath . DS . 'index.php' , 0755);
+            }
+        }
         $this->savePath = dirname($savePath) . '/';
     }
     
@@ -319,11 +400,14 @@ class fileModel extends model
     public function edit($fileID)
     {
         $this->replaceFile($fileID);
-        
         $fileInfo = fixer::input('post')->remove('upFile')->get();
-        $this->dao->update(TABLE_FILE)->data($fileInfo)->autoCheck()->batchCheck('title', 'notempty')->where('id')->eq($fileID)->exec();
+        if(!validater::checkFileName($fileInfo->title)) return false;
+        $fileInfo->lang = 'all';
+        $this->dao->update(TABLE_FILE)->data($fileInfo)->autoCheck()->batchCheck($this->config->file->require->edit, 'notempty')->where('id')->eq($fileID)->exec();
+        $this->dao->setAutoLang(false)->update(TABLE_FILE)->data($fileInfo)->autoCheck()->batchCheck($this->config->file->require->edit, 'notempty')->where('id')->eq($fileID)->exec();
+
     }
-    
+
     /**
      * Replace a file.
      * 
@@ -335,7 +419,7 @@ class fileModel extends model
         if($files = $this->getUpload($postName))
         {
             $file      = $files[0];
-            $fileInfo  = $this->dao->select('pathname, extension')->from(TABLE_FILE)->where('id')->eq($fileID)->fetch();
+            $fileInfo  = $this->dao->setAutoLang(false)->select('pathname, extension')->from(TABLE_FILE)->where('id')->eq($fileID)->fetch();
             $extension = strtolower($file['extension']);
 
             if($extension != $fileInfo->extension)
@@ -354,7 +438,18 @@ class fileModel extends model
 
             $realPathName = $this->savePath . $fileInfo->pathname;
             $imageSize    = array('width' => 0, 'height' => 0);
-            move_uploaded_file($file['tmpname'], $realPathName);
+            if(strpos($this->config->file->allowed, ',' . $extension . ',') === false)
+            {
+                if(!move_uploaded_file($file['tmpname'], $this->savePath . $file['pathname'] . '.txt')) return false;
+                $file['pathname'] .= '.txt';
+                $file = $this->saveZip($file); 
+            }
+            else
+            {
+                if(!move_uploaded_file($file['tmpname'], $this->savePath . $file['pathname'])) return false;
+            }
+
+            if(strpos($this->config->file->allowed, ',' . $file['extension'] . ',') === false) $file = $this->saveZip($file);
             if(in_array(strtolower($file['extension']), $this->config->file->imageExtensions))
             {
                 $this->compressImage($realPathName);
@@ -366,7 +461,9 @@ class fileModel extends model
             $fileInfo->size      = $file['size'];
             $fileInfo->width     = $imageSize['width'];
             $fileInfo->height    = $imageSize['height'];
-            $this->dao->update(TABLE_FILE)->data($fileInfo)->where('id')->eq($fileID)->exec();
+            $fileInfo->lang      = 'all';
+            $this->dao->setAutoLang(false)->update(TABLE_FILE)->data($fileInfo)->where('id')->eq($fileID)->exec();
+            $this->loadModel('setting')->setItems('system.common.site', array('lastUpload' => time()));
             return true;
         }
         else
@@ -454,6 +551,7 @@ class fileModel extends model
             $imageSize      = $this->getImageSize($this->savePath . $file['pathname']);
             $file['width']  = $imageSize['width'];
             $file['height'] = $imageSize['height'];
+            $file['lang']   = 'all';
 
             $this->dao->insert(TABLE_FILE)->data($file)->exec();
             $_SESSION['album'][$uid][] = $this->dao->lastInsertID();
@@ -518,9 +616,10 @@ class fileModel extends model
         $data = new stdclass();
         $data->objectID   = $objectID;
         $data->objectType = $objectType;
+        $data->lang       = 'all';
         if(isset($_SESSION['album'][$uid]) and $_SESSION['album'][$uid])
         {
-            $this->dao->update(TABLE_FILE)->data($data)->where('id')->in($_SESSION['album'][$uid])->exec();
+            $this->dao->setAutoLang(false)->update(TABLE_FILE)->data($data)->where('id')->in($_SESSION['album'][$uid])->exec();
             if(dao::isError()) return false;
             return !dao::isError(); 
         }
@@ -545,7 +644,7 @@ class fileModel extends model
             $pathname = str_replace($this->webPath, '', $pathname);
             $pathname = str_replace('\?fromSpace=y', '', $pathname);
 
-            $data = $this->dao->select('*')->from(TABLE_FILE)->where('pathname')->eq($pathname)->fetch();
+            $data = $this->dao->setAutoLang(false)->select('*')->from(TABLE_FILE)->where('pathname')->eq($pathname)->fetch();
             if(!$data) $data = new stdclass();
 
             $data->pathname   = $pathname;
@@ -555,8 +654,9 @@ class fileModel extends model
             $data->addedBy    = $this->app->user->account;
             $data->addedDate  = helper::now();
             $data->editor     = 1;
+            $data->lang       = 'all';
 
-            $fileExists = $this->dao->select('count(*) as count')->from(TABLE_FILE)
+            $fileExists = $this->dao->setAutoLang(false)->select('count(*) as count')->from(TABLE_FILE)
                 ->where('objectType')->eq($objectType)
                 ->andWhere('objectID')->eq($objectID)
                 ->andWhere('pathname')->eq($pathname)

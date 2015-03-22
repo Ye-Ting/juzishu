@@ -2,8 +2,8 @@
 /**
  * The control file of message module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     message
  * @version     $Id$
@@ -24,7 +24,6 @@ class message extends control
         $pager = new pager($recTotal = 0, $this->config->message->recPerPage, $pageID);
 
         $this->view->messages    = $this->message->getByObject($type = 'message', $objectType = 'message', $objectID = 0, $pager);
-        $this->view->replies     = $this->message->getReplies($this->view->messages);
         $this->view->pager       = $pager;
         $this->view->title       = $this->lang->message->list;
         $this->view->startNumber = ($pageID - 1) * 10;
@@ -47,7 +46,6 @@ class message extends control
         $this->view->objectType  = $objectType;
         $this->view->objectID    = $objectID;
         $this->view->comments    = $this->message->getByObject($type = 'comment', $objectType, $objectID, $pager);
-        $this->view->replies     = $this->message->getReplies($this->view->comments);
         $this->view->pager       = $pager;
         $this->view->startNumber = ($pageID - 1) * 10;
         $this->lang->message     = $this->lang->comment;
@@ -100,7 +98,6 @@ class message extends control
 
         $this->view->title    = $this->lang->message->common;
         $this->view->messages = $this->message->getList($type, $status, $pager);
-        $this->view->replies  = $this->message->getReplies($this->view->messages);
         $this->view->pager    = $pager;
         $this->view->type     = $type;
         $this->view->status   = $status;
@@ -151,12 +148,17 @@ class message extends control
     {
         if($_POST)
         {
-            $result = $this->message->reply($messageID);
-            if($result) $this->send(array('result' => 'success', 'message' => $this->lang->sendSuccess));
-            $this->send(array('result' => 'fail', 'reason' => 'error', 'message' => dao::getError()));
+            $replyID = $this->message->reply($messageID);
+            if(!$replyID) $this->send(array('result' => 'fail', 'reason' => 'error', 'message' => dao::getError()));
+            $this->message->setCookie($replyID);
+            $this->send(array('result' => 'success', 'message' => $this->lang->sendSuccess));
         }
 
-        $this->view->message = $this->message->getByID($messageID);
+        $message = $this->message->getByID($messageID);
+
+        $this->view->title      = "<i class='icon-mail-reply'></i> " . $this->lang->message->reply . ':' . $message->from;
+        $this->view->modalWidth = 600;
+        $this->view->message    = $message;
         $this->display();
     }
 

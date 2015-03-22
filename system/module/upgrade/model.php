@@ -2,9 +2,8 @@
 /**
  * The model file of upgrade module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
- * @license     http://api.chanzhi.org/goto.php?item=license 
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     upgrade
  * @version     $Id: model.php 5019 2013-07-05 02:02:31Z wyd621@gmail.com $
@@ -22,23 +21,6 @@ class upgradeModel extends model
      * @access public
      */
     static $errors = array();
-
-    /**
-     * Security: can execute upgrade or not.
-     * 
-     * @access public
-     * @return array  array('result' => success|fail, 'okFile');
-     */
-    public function canUpgrade()
-    {
-        $okFile = dirname($this->app->getDataRoot()) . DS . 'ok';
-        if(!file_exists($okFile) or time() - filemtime($okFile) > 600)
-        {
-            return array('result' => 'fail', 'okFile' => $okFile);
-        }
-
-        return array('result' => 'success');
-    }
 
     /**
      * The execute method. According to the $fromVersion call related methods.
@@ -91,10 +73,34 @@ class upgradeModel extends model
                 $this->fixTopRegion();
                 $this->fixSlideHeight();
                 $this->setDefaultSiteType();
-
+            case '2_4':
+                $this->execSQL($this->getUpgradeFile('2.4'));
+                $this->upgradeSlideTarget();
+                $this->createIndexFile();
+                $this->deleteLogFile();
+                $this->setDefaultCurrency();
+            case '2_5_beta':
+                $this->execSQL($this->getUpgradeFile('2.5.beta'));
+                $this->setCompanyBlocks();
+            case '2_5_2':
+                $this->execSQL($this->getUpgradeFile('2.5.2'));
+            case '2_5_3':
+                $this->execSQL($this->getUpgradeFile('2.5.3'));
+                $this->fixCustomedCss();
+            case '3_0';
+            case '3_0_1';
+            case '3_1':
+                $this->fixBasicSite();
+            case '3_2';
+            case '3_3':
+                $this->execSQL($this->getUpgradeFile('3.3'));
+            case '4_0':
+                $this->fixLang();
+                $this->fillDefaultBlocks();
             default: if(!$this->isError()) $this->loadModel('setting')->updateVersion($this->config->version);
         }
 
+        $this->createCustomerCss();
         $this->deletePatch();
     }
 
@@ -110,20 +116,30 @@ class upgradeModel extends model
         $confirmContent = '';
         switch($fromVersion)
         {
-            case '1_0'  : $confirmContent .= file_get_contents($this->getUpgradeFile('1.0'));
-            case '1_1'  : $confirmContent .= file_get_contents($this->getUpgradeFile('1.1'));
-            case '1_2'  : $confirmContent .= file_get_contents($this->getUpgradeFile('1.2'));
-            case '1_3'  : $confirmContent .= file_get_contents($this->getUpgradeFile('1.3'));
-            case '1_4'  : $confirmContent .= file_get_contents($this->getUpgradeFile('1.4'));
-            case '1_5'  : $confirmContent .= file_get_contents($this->getUpgradeFile('1.5'));
-            case '1_6'  : $confirmContent .= file_get_contents($this->getUpgradeFile('1.6'));
-            case '1_7'  : $confirmContent .= file_get_contents($this->getUpgradeFile('1.7'));
-            case '2_0'  : $confirmContent .= file_get_contents($this->getUpgradeFile('2.0'));
-            case '2_0_1': $confirmContent .= file_get_contents($this->getUpgradeFile('2.0.1'));
-            case '2_1'  : $confirmContent .= file_get_contents($this->getUpgradeFile('2.1'));
-            case '2_2'  : $confirmContent .= file_get_contents($this->getUpgradeFile('2.2'));
-            case '2_2_1': $confirmContent .= file_get_contents($this->getUpgradeFile('2.2.1'));
-            case '2_3'  : $confirmContent .= file_get_contents($this->getUpgradeFile('2.3'));
+            case '1_0'      : $confirmContent .= file_get_contents($this->getUpgradeFile('1.0'));
+            case '1_1'      : $confirmContent .= file_get_contents($this->getUpgradeFile('1.1'));
+            case '1_2'      : $confirmContent .= file_get_contents($this->getUpgradeFile('1.2'));
+            case '1_3'      : $confirmContent .= file_get_contents($this->getUpgradeFile('1.3'));
+            case '1_4'      : $confirmContent .= file_get_contents($this->getUpgradeFile('1.4'));
+            case '1_5'      : $confirmContent .= file_get_contents($this->getUpgradeFile('1.5'));
+            case '1_6'      : $confirmContent .= file_get_contents($this->getUpgradeFile('1.6'));
+            case '1_7'      : $confirmContent .= file_get_contents($this->getUpgradeFile('1.7'));
+            case '2_0'      : $confirmContent .= file_get_contents($this->getUpgradeFile('2.0'));
+            case '2_0_1'    : $confirmContent .= file_get_contents($this->getUpgradeFile('2.0.1'));
+            case '2_1'      : $confirmContent .= file_get_contents($this->getUpgradeFile('2.1'));
+            case '2_2'      : $confirmContent .= file_get_contents($this->getUpgradeFile('2.2'));
+            case '2_2_1'    : $confirmContent .= file_get_contents($this->getUpgradeFile('2.2.1'));
+            case '2_3'      : $confirmContent .= file_get_contents($this->getUpgradeFile('2.3'));
+            case '2_4'      : $confirmContent .= file_get_contents($this->getUpgradeFile('2.4'));
+            case '2_5_beta' : $confirmContent .= file_get_contents($this->getUpgradeFile('2.5.beta'));
+            case '2_5_2'    : $confirmContent .= file_get_contents($this->getUpgradeFile('2.5.2'));
+            case '2_5_3'    : $confirmContent .= file_get_contents($this->getUpgradeFile('2.5.3'));
+            case '3_0';
+            case '3_0_1';
+            case '3_1';
+            case '3_2';
+            case '3_3'      : $confirmContent .= file_get_contents($this->getUpgradeFile('3.3'));
+            case '4_0';
         }
         return str_replace(array('xr_', 'eps_'), $this->config->db->prefix, $confirmContent);
     }
@@ -136,8 +152,7 @@ class upgradeModel extends model
      */
     public function deletePatch()
     {
-        return true;
-        $this->dao->delete()->from(TABLE_EXTENSION)->where('type')->eq('patch')->exec();
+        $this->dao->setAutoLang(false)->delete()->from(TABLE_PACKAGE)->where('type')->eq('patch')->exec();
     }
 
     /**
@@ -334,7 +349,7 @@ class upgradeModel extends model
 
                 $this->dao->insert(TABLE_BOOK)->data($article)->exec();
                 $articleID = $this->dao->lastInsertID();
-                $this->dao->update(TABLE_FILE)
+                $this->dao->setAutoLang(false)->update(TABLE_FILE)
                     ->set('objectType')->eq('book')
                     ->set('objectID')->eq($articleID)
                     ->where('objectType')->like('book_%')
@@ -363,7 +378,7 @@ class upgradeModel extends model
     {
         $this->loadModel('file');
 
-        $files = $this->dao->select('*')->from(TABLE_FILE)->fetchAll();
+        $files = $this->dao->setAutoLang(false)->select('*')->from(TABLE_FILE)->fetchAll();
 
         foreach($files as $file)
         {
@@ -480,6 +495,71 @@ class upgradeModel extends model
     {
         $this->dao->insert(TABLE_LAYOUT)->set('page')->eq('page_index')->set('region')->eq('side')->set('blocks')->eq('2,9,')->exec();
         $this->dao->insert(TABLE_LAYOUT)->set('page')->eq('page_view')->set('region')->eq('side')->set('blocks')->eq('2,9,')->exec();
+        return !dao::isError();
+    }   
+
+    /**
+     * Set company blocks when upgrade from 2.5.beta.
+     * 
+     * @access public
+     * @return void
+     */
+    public function setCompanyBlocks()
+    {
+        $this->app->loadLang('block');
+
+        $wechatBlock = array('type' => 'followUs', 'title' => $this->lang->block->default->typeList['followUs'], 'content' => '', 'template' => 'default');
+
+        $this->dao->insert(TABLE_BLOCK)->data($wechatBlock)->exec();
+
+        $wechatBlockID = $this->dao->lastInsertID();
+
+        $contactBlocks = $this->dao->select('*')->from(TABLE_BLOCK)->where('type')->eq('contact')->fetchAll('template');
+
+        if(!$contactBlocks)
+        {
+            $contactBlock = array('type' => 'contact', 'title' => $this->lang->block->default->typeList['contact'], 'content' => '', 'template' => 'default');
+            $this->dao->insert(TABLE_BLOCK)->data($contactBlock)->exec();
+            $contactBlockID = $this->dao->lastInsertID();
+
+            $companyBlocks = array();
+            $contactBlock  = array();
+            $wechatBlock   = array();
+
+            $contactBlock['id'] = $contactBlockID;
+            $wechatBlock['id']  = $wechatBlockID;
+            $companyBlocks[]    = $contactBlock;
+            $companyBlocks[]    = $wechatBlock;
+
+            $this->dao->insert(TABLE_LAYOUT)
+                ->set('page')->eq('company_index')
+                ->set('region')->eq('side')
+                ->set('blocks')->eq(json_encode($companyBlocks))
+                ->set('template')->eq('default')
+                ->exec();
+
+            return !dao::isError();
+        }
+
+        foreach($contactBlocks as $template => $block)
+        {
+            $companyBlocks = array();
+            $contactBlock  = array();
+            $wechatBlock   = array();
+
+            $contactBlock['id'] = $block->id;
+            $wechatBlock['id']  = $wechatBlockID;
+            $companyBlocks[]    = $contactBlock;
+            $companyBlocks[]    = $wechatBlock;
+
+            $this->dao->insert(TABLE_LAYOUT)
+                ->set('page')->eq('company_index')
+                ->set('region')->eq('side')
+                ->set('blocks')->eq(json_encode($companyBlocks))
+                ->set('template')->eq($template)
+                ->exec();
+        }
+
         return !dao::isError();
     }   
 
@@ -736,6 +816,155 @@ class upgradeModel extends model
     }
 
     /**
+     * Upgrade slide when upgrade when 2.4.
+     * 
+     * @access public
+     * @return void
+     */
+    public function upgradeSlideTarget()
+    {
+        $slides = $this->dao->select('*')->from(TABLE_CONFIG)
+            ->where('owner')->eq('system')
+            ->andWhere('module')->eq('common')
+            ->andWhere('section')->eq('slides')
+            ->fetchAll('key');
+
+        foreach($slides as $key => $slide)
+        {
+            $slides[$key] = json_decode($slide->value);
+            $slides[$key]->target = '_self';
+
+            $slides[$key]->buttonTarget = array();
+            foreach($slides[$key]->buttonUrl as $button => $url)
+            {
+                $slides[$key]->buttonTarget[$button] = '_self';
+            }
+
+            $this->dao->update(TABLE_CONFIG)
+                ->set('value')->eq(helper::jsonEncode($slides[$key]))
+                ->where('`key`')->eq($key)
+                ->exec();
+        }
+
+        return !dao::isError();
+    }
+
+    /**
+     * Scan directory and create empty index file when upgrade from 2.4
+     * 
+     * @param  string    $path 
+     * @access public
+     * @return void
+     */
+    public function createIndexFile($path = null)
+    {
+        if(empty($path)) $path = $this->app->getDataRoot() . 'upload';
+
+        $scanDir   = dir($path);
+        $indexFile = $path . DS . "index.php";
+        if(is_writable($path) && !file_exists($indexFile))
+        {
+            $fd = @fopen($indexFile, "a+");
+            @fclose($fd);
+            chmod($indexFile, 0755);
+        }
+        
+        while($file = $scanDir->read())
+        {
+            $nextDir = $path . DS . $file;
+            if((is_dir($nextDir)) AND ($file != ".") AND ($file != ".."))
+            {
+                $this->createIndexFile($nextDir);
+            }
+        }
+    }
+
+    /**
+     * Delete log file when upgrade from 2.4 
+     * delete all file in logRoot directory but index.php .
+     * if delete fail set system.common.upgrade deleteLogFile=0  
+     *
+     * @access public
+     * @return void
+     */
+    public function deleteLogFile()
+    {
+        $logRoot = $this->app->getLogRoot();
+        if(!is_writable($logRoot))
+        {
+            return $this->loadModel('setting')->setItems('system.common.upgrade', array('deleteLogFile' => '0'));
+        }
+        else
+        {
+            $scanDir = dir($logRoot);
+            while($file = $scanDir->read())
+            {
+                if(is_file($logRoot . $file) && $file != 'index.php' && $file != '.gitkeep')
+                {
+                    unlink($logRoot . $file);
+                }
+            }
+        }
+    }
+
+    /**
+     * Set default currency.
+     * 
+     * @access public
+     * @return void
+     */
+    public function setDefaultCurrency()
+    {
+        if($this->config->site->lang != 'en') return $this->loadModel('setting')->setItems('system.common.product', array('currency' => '￥'));
+        if($this->config->site->lang == 'en') return $this->loadModel('setting')->setItems('system.common.product', array('currency' => '$'));
+    }
+
+    /**
+     * Fix customed css.
+     * 
+     * @access public
+     * @return void
+     */
+    public function fixCustomedCss()
+    {
+        $customedFile = $this->app->getDataRoot() . 'theme/custom.css';
+        if(is_file($customedFile))
+        {
+            $customPath = $this->app->getDataRoot() . 'css' . DS . 'default' . DS . 'colorful' . DS;
+            mkdir($customPath, 0777, true);
+
+            rename($customedFile, $customPath . 'style.css');
+        }
+
+        if(isset($this->config->site->themeSetting))
+        {
+            $customed = json_decode($this->config->site->themeSetting, true);
+            $setting['default']['colorful']['font-size']        = $customed['fontSize'];
+            $setting['default']['colorful']['border-radius']    = $customed['borderRadius'];
+            $setting['default']['colorful']['color-primary']    = $customed['primaryColor'];
+            $setting['default']['colorful']['background-color'] = $customed['backColor'];
+
+            return  $this->loadModel('setting')->setItems('system.common.template', array('custom' => helper::jsonEncode($setting)) );
+        }
+
+        return true;
+    }
+
+    /**
+     * Fix BasicSite for icpSN and modules.
+     * 
+     * @access public
+     * @return bool
+     */
+    public function fixBasicSite()
+    {
+        $this->dao->update(TABLE_CONFIG)->set('`key`')->eq('icpSN')->where('`key`')->eq('icp')->andWhere('section')->eq('site')->exec();
+        $this->dao->update(TABLE_CONFIG)->set('`key`')->eq('modules')->where('`key`')->eq('moduleEnabled')->andWhere('section')->eq('site')->exec();
+
+        return !dao::isError();
+    }
+
+    /**
      * Judge any error occers.
      * 
      * @access public
@@ -757,5 +986,123 @@ class upgradeModel extends model
         $errors = self::$errors;
         self::$errors = array();
         return $errors;
+    }
+
+    /**
+     * Create customer css files.
+     * 
+     * @access public
+     * @return void
+     */
+    public function createCustomerCss()
+    {
+        $lessc = $this->app->loadClass('lessc');
+        $settings = isset($this->config->template->custom) ? json_decode($this->config->template->custom, true) : array();
+        foreach($settings as $template => $themes)
+        {
+            foreach($themes as $theme => $params)
+            {
+                $this->loadModel('ui')->createCustomerCss($template, $theme, $params);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Fix Lang fields.
+     * 
+     * @access public
+     * @return void
+     */
+    public function fixLang()
+    {
+        $this->dbh->exec('USE ' . $this->config->db->name);
+        $tables = $this->dbh->query('show tables')->fetchAll(PDO::FETCH_COLUMN );
+
+        foreach($tables as $table)
+        {
+            $fields = $this->dbh->query("DESC {$table}")->fetchAll(PDO::FETCH_COLUMN );
+            if(!in_array('lang', $fields))
+            {
+                $this->dbh->exec("alter table `{$table}` add lang char(30) not null;");         
+            }
+            $this->dbh->exec("update `{$table}` set lang = '{$this->config->default->lang}' where lang = '';");         
+        }
+        $this->dbh->exec("UPDATE " . TABLE_PACKAGE . " set lang = 'all';");
+        $this->dbh->exec("UPDATE " . TABLE_FILE . " set lang = 'all';");
+
+        $this->dbh->exec("ALTER TABLE " . TABLE_CONFIG  . " DROP INDEX `unique`;");
+        $this->dbh->exec("CREATE UNIQUE INDEX `unique` ON " . TABLE_CONFIG  . " (`owner`,`module`,`section`,`key`,`lang`);");
+        $this->dbh->exec("ALTER TABLE " . TABLE_LAYOUT  . " DROP INDEX `layout`;");
+        $this->dbh->exec("CREATE UNIQUE INDEX `layout` ON " . TABLE_LAYOUT  . " (`template`,`page`,`region`,`lang`);");
+    }
+
+    /**
+     * 
+     * 
+     * @access public
+     * @return void
+     */
+    public function fillDefaultBlocks()
+    {
+        $mysqlVersion = $this->loadModel('install')->getMysqlVersion();
+        $currentLang = $this->config->default->lang;
+        foreach($this->config->langs as $lang => $name)
+        {
+            if($lang != $currentLang)
+            {
+                $sqlFile = $this->app->getAppRoot() . 'db' . DS . 'blocks.' . $lang . '.sql';
+                if(file_exists($sqlFile))
+                {
+                    $maxBlockID = $this->dao->setAutoLang(false)->select("max(id) as maxID")->from(TABLE_BLOCK)->fetch('maxID');
+
+                    /* Read the sql file to lines, remove the comment lines, then join theme by ';'. */
+                    $sqls =  file_get_contents($sqlFile);
+                    $marks  = array();
+                    $blocks = array();
+                    for($i = 1; $i <= 13; $i ++)
+                    {
+                        $marks[]  = '"block' . $i .'"';
+                        $block = '"';
+                        $blocks[] = $block . ($maxBlockID + $i) . '"';
+                    }
+
+                    /*Replace block ids with computed id.*/
+                    $sqls = str_replace($marks, $blocks, $sqls);
+                    $sqls = explode("\n", $sqls);
+
+                    foreach($sqls as $key => $line) 
+                    {
+                        $line       = trim($line);
+                        $sqls[$key] = $line;
+                        if(strpos($line, '--') !== false or empty($line)) unset($sqls[$key]);
+                    }
+                    $sqls = explode(';', join("\n", $sqls));
+
+                    foreach($sqls as $sql)
+                    {
+                        $sql = trim($sql);
+                        if(empty($sql)) continue;
+
+                        if($mysqlVersion <= 4.1)
+                        {
+                            $sql = str_replace('DEFAULT CHARSET=utf8', '', $sql);
+                            $sql = str_replace('CHARACTER SET utf8 COLLATE utf8_general_ci', '', $sql);
+                        }
+
+                        $sql = str_replace(array('eps_', 'xr_'), $this->config->db->prefix, $sql);
+                        try
+                        {
+                            $this->dbh->exec($sql);
+                        }
+                        catch (PDOException $e) 
+                        {
+                            self::$errors[] = $e->getMessage() . "<p>The sql is: $sql</p>";
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }

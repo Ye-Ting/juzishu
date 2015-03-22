@@ -2,8 +2,8 @@
 /**
  * The thread module zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     thread
  * @version     $Id$
@@ -21,6 +21,8 @@ $lang->thread->postedDate = '发表于';
 $lang->thread->replies    = '回帖';
 $lang->thread->views      = '阅读';
 $lang->thread->lastReply  = '最后回帖';
+$lang->thread->isLink     = '跳转';
+$lang->thread->link       = '链接';
 
 $lang->thread->post       = '发贴';
 $lang->thread->postTo     = '发布贴子到';
@@ -50,8 +52,13 @@ $lang->thread->message         = '%s在论坛#%s回复了主题：%s，内容为
 $lang->thread->readonly        = '只读';
 $lang->thread->successStick    = '成功置顶';
 $lang->thread->successUnstick  = '成功取消置顶';
+$lang->thread->successHide     = '帖子已经成功隐藏';
+$lang->thread->successShow     = '显示成功';
 $lang->thread->readonlyMessage = '该帖已被设置为 <strong>只读</strong>，您暂时无法发表新的回复。';
 $lang->thread->successTransfer = '转移成功';
+
+$lang->thread->placeholder = new stdclass();
+$lang->thread->placeholder->link = '输入链接，可以是站外连接';
 
 /* Adjust the pager. */
 if(!isset($lang->pager->settedInForum))

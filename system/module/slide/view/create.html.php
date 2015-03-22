@@ -2,8 +2,8 @@
 /**
  * The create view file of slide of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan<guanxiying@xirangit.com>
  * @package     slide
  * @version     $Id$
@@ -26,10 +26,11 @@ foreach (explode('|', $lang->slide->colorPlates) as $value)
       <table class='table table-form'>
         <tr>
           <th class='w-100px'><?php echo $lang->slide->title;?></th>
-          <td class='w-p40'><?php echo html::input('title', '', "class='form-control'");?></td>
-          <td>
+          <td class='w-p40 title'><?php echo html::input('title', '', "class='form-control'");?></td>
+          <td class='title-color'>
             <div class='colorplate clearfix'>
               <div class='input-group color active' data='#FFF'>
+                <label class='input-group-addon'><?php echo $lang->slide->titleColor;?></label>
                 <?php echo html::input('titleColor', '#FFF', "class='form-control input-color text-latin' placeholder='" . $lang->slide->colorTip . "'");?>
                 <span class='input-group-btn'>
                   <button type='button' class='btn dropdown-toggle' data-toggle='dropdown'> <i class='icon icon-question'></i> <span class='caret'></span></button>
@@ -40,10 +41,20 @@ foreach (explode('|', $lang->slide->colorPlates) as $value)
               </div>
             </div>
           </td>
+          <td class='w-70px'></td>
         </tr>
         <tr>
           <th><?php echo $lang->slide->mainLink;?></th>
-          <td><?php echo html::input('mainLink', '', "class='form-control'");?></td><td colspan='2'></td>
+          <td colspan='2'>
+            <div class='input-group mainLink'>
+              <?php echo html::input('mainLink', '', "class='form-control'");?>
+              <div class='input-group-addon'>
+                <label class='checkbox'>
+                  <?php echo "<input type='checkbox' name='target' id='target' value='1'/><span>{$lang->slide->newWindow}</span>" ?>
+                </label>
+              </div>
+            </div>
+          </td>
         </tr>
         <tr>
           <th><?php echo $lang->slide->background->type;?></th>
@@ -51,29 +62,27 @@ foreach (explode('|', $lang->slide->colorPlates) as $value)
         </tr>
         <tr class='bg-section' data-id='color'>
           <th><?php echo $lang->slide->background->color;?></th>
-          <td colspan='2'>
-            <div class='colorplate clearfix'>
-              <div class='input-group color active' data='#114DAD'>
-                <?php echo html::input('backgroundColor', '#114DAD', "class='form-control input-color text-latin' placeholder='" . $lang->slide->colorTip . "'");?>
-                <span class='input-group-btn'>
-                  <button type='button' class='btn dropdown-toggle' data-toggle='dropdown'>
-                    <i class='icon icon-question'></i> 
-                    <span class='caret'></span>
-                  </button>
-                  <div class='dropdown-menu colors'>
-                    <?php echo $colorPlates; ?>
-                  </div>
-                </span>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr class='bg-section' data-id='color'>
-          <th><?php echo $lang->slide->height;?></th>
           <td>
-            <div class='input-group'>
-              <?php echo html::input('height', '', "class='form-control'");?>
-              <span class='input-group-addon'>px</span>
+            <div class='row'>
+              <div class='colorplate clearfix col-sm-6'>
+                <div class='input-group color active' data='#114DAD'>
+                  <?php echo html::input('backgroundColor', '#114DAD', "class='form-control input-color text-latin' placeholder='" . $lang->slide->colorTip . "'");?>
+                  <span class='input-group-btn'>
+                    <button type='button' class='btn dropdown-toggle' data-toggle='dropdown'>
+                      <i class='icon icon-question'></i> 
+                      <span class='caret'></span>
+                    </button>
+                    <div class='dropdown-menu colors'>
+                      <?php echo $colorPlates; ?>
+                    </div>
+                  </span>
+                </div>
+              </div>
+              <div class='col-sm-5 input-group'>
+                <span class='input-group-addon'><?php echo $lang->slide->height;?></span>
+                <?php echo html::input('height', '', "class='form-control'");?>
+                <span class='input-group-addon'>px</span>
+              </div>
             </div>
           </td>
         </tr>
@@ -103,7 +112,14 @@ foreach (explode('|', $lang->slide->colorPlates) as $value)
               </div>
             </div>
           </td>
-          <td><?php echo html::input('buttonUrl[0]', '', "class='form-control' placeholder='{$lang->slide->buttonUrl}'");?></td>
+          <td>
+            <div class='input-group'>
+              <?php echo html::input('buttonUrl[0]', '', "class='form-control' placeholder='{$lang->slide->buttonUrl}'");?>
+              <div class='input-group-addon'>
+                <?php echo html::checkbox('buttonTarget', $lang->slide->target, '', "class='button-target'") . html::hidden('buttonTarget[0]', '');?>
+              </div>
+            </div>
+          </td>
           <td><?php echo html::a('javascript:;', "<i class='icon-plus'></i>", "class='plus btn btn-mini'") . html::a('javascript:;', "<i class='icon-remove'></i>", "class='delete btn-mini btn'");?></td>
         </tr>
         <tr>
@@ -141,7 +157,14 @@ foreach (explode('|', $lang->slide->colorPlates) as $value)
             </div>
           </div>
         </td>
-        <td><?php echo html::input('buttonUrl[key]', '', "class='form-control' placeholder='{$lang->slide->buttonUrl}'");?></td>
+        <td>
+          <div class='input-group'>
+            <?php echo html::input('buttonUrl[key]', '', "class='form-control' placeholder='{$lang->slide->buttonUrl}'");?>
+            <div class='input-group-addon'>
+              <?php echo html::checkbox('buttonTarget', $lang->slide->target, '', "class='button-target'") . html::hidden('buttonTarget[key]', '');?>
+            </div>
+          </div>
+        </td> 
         <td><?php echo html::a('javascript:;', "<i class='icon-plus'></i>", "class='plus btn btn-mini'") . html::a('javascript:;', "<i class='icon-remove'></i>", "class='delete btn-mini btn'");?></td>
       </tr>
     </tbody>

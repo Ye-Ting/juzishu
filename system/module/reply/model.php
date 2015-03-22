@@ -2,8 +2,8 @@
 /**
  * The model file of reply module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     reply
  * @version     $Id$
@@ -139,7 +139,7 @@ class replyModel extends model
         $this->dao->insert(TABLE_REPLY)
             ->data($reply, $skip = 'captcha, uid')
             ->autoCheck()
-            ->batchCheck('content', 'notempty')
+            ->batchCheck($this->config->reply->require->edit, 'notempty')
             ->check('captcha', 'captcha')
             ->exec();
 
@@ -184,7 +184,7 @@ class replyModel extends model
         $this->dao->update(TABLE_REPLY)
             ->data($reply, $skip = 'captcha, uid')
             ->autoCheck()
-            ->check('content', 'notempty')
+            ->batchCheck($this->config->reply->require->post, 'notempty')
             ->check('captcha', 'captcha')
             ->where('id')->eq($replyID)
             ->exec();
@@ -255,6 +255,7 @@ class replyModel extends model
         {
             if($file->isImage)
             {
+                if($file->editor) continue;
                 $imagesHtml .= "<li class='file-image file-{$file->extension}'>" . html::a(helper::createLink('file', 'download', "fileID=$file->id&mose=left"), html::image($file->fullURL), "target='_blank' data-toggle='lightbox'");
                 if($canManage) $imagesHtml .= "<span class='file-actions'>" . html::a(helper::createLink('reply', 'deleteFile', "replyID=$reply->id&fileID=$file->id"), "<i class='icon-trash'></i>", "class='deleter'") . '</span>';
                 $imagesHtml .= '</li>';
@@ -267,7 +268,7 @@ class replyModel extends model
                 $filesHtml .= '</li>';
             }
         }
-        echo "<ul class='article-files clearfix'><li class='article-files-heading'>". $this->lang->reply->files . '</li>' . $imagesHtml . $filesHtml . '</ul>';
+        if($imagesHtml or $filesHtml) echo "<ul class='files-list clearfix'><li class='files-list-heading'>". $this->lang->reply->files . '</li>' . $imagesHtml . $filesHtml . '</ul>';
     }
 
     /**

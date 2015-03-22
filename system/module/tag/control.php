@@ -2,8 +2,8 @@
 /**
  * The control file of tag module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan <guanxiying@xirangit.com>
  * @package     tag
  * @version     $Id$
@@ -26,13 +26,12 @@ class tag extends control
         $this->app->loadClass('pager', $static = true);
         $pager = new pager($recTotal, $recPerPage, $pageID);
 
-        $tags = $this->post->tags ? $this->post->tags : array();
+        $tag = $this->post->tag ? $this->post->tag : '';
 
-        $this->view->title      = $this->lang->tag->admin;
-        $this->view->pager      = $pager;
-        $this->view->tags       = $this->tag->getList($tags, $orderBy, $pager);
-        $this->view->tagOptions = $this->dao->select('tag')->from(TABLE_TAG)->fetchPairs('tag', 'tag');
-        $this->view->orderBy    = $orderBy;
+        $this->view->title   = $this->lang->tag->admin;
+        $this->view->pager   = $pager;
+        $this->view->tags    = $this->tag->getList($tag, $orderBy, $pager);
+        $this->view->orderBy = $orderBy;
         $this->display();
     }   
 
@@ -47,12 +46,14 @@ class tag extends control
     {
         if($_POST)
         {
-            $this->dao->update(TABLE_TAG)->set('link')->eq($this->post->link)->where('id')->eq($tagID)->exec();
-            if(!dao::isError()) $this->send(array('result' => 'success'));
+            $link = fixer::input('post')->stripTags('link', $this->config->allowedTags->admin)->get();
+            $this->dao->update(TABLE_TAG)->data($link)->autoCheck()->where('id')->eq($tagID)->exec();
+            if(!dao::isError()) $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess));
             $this->send(array('result' => 'fail', 'message' => dao::getError()));
         }
 
-        $this->view->tag = $this->dao->select('*')->from(TABLE_TAG)->where('id')->eq($tagID)->fetch();
+        $this->view->title = "<i class='icon-edit'></i> " . $this->lang->tag->editLink;
+        $this->view->tag   = $this->dao->select('*')->from(TABLE_TAG)->where('id')->eq($tagID)->fetch();
         $this->display();
     }
 }

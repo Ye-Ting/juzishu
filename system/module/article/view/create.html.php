@@ -2,8 +2,8 @@
 /**
  * The create view file of article module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     article
  * @version     $Id$
@@ -16,6 +16,7 @@
 <?php js::set('categoryID', $currentCategory);?>
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php include '../../common/view/chosen.html.php';?>
+<?php include '../../common/view/codeeditor.html.php';?>
 
 <div class='panel'>
   <div class='panel-heading'><strong><i class='icon-plus'></i>&nbsp;
@@ -33,9 +34,9 @@
         <?php if($type != 'page'):?>
         <tr>
           <th class='w-100px'><?php echo $lang->article->category;?></th>
-          <td class='w-p40'><?php echo html::select("categories[]", $categories, $currentCategory, "multiple='multiple' class='form-control chosen'");
-        ?></td><td></td>
+          <td class='w-p40'><?php echo html::select("categories[]", $categories, $currentCategory, "multiple='multiple' class='form-control chosen'");?></td><td></td>
         </tr>
+        <tbody class='articleInfo'> 
         <tr>
           <th><?php echo $lang->article->author;?></th>
           <td><?php echo html::input('author', $app->user->realname, "class='form-control'");?></td>
@@ -50,22 +51,40 @@
             </div>
           </td>
         </tr>
+        </tbody>
         <?php endif; ?>
         <tr>
           <th><?php echo $lang->article->title;?></th>
-          <td colspan='2'><?php echo html::input('title', '', "class='form-control'");?></td>
+          <td colspan='2'>
+            <div class='input-group'>
+              <?php echo html::input('title', '', "class='form-control'");?>
+              <span class="input-group-addon w-70px">
+                <label class='checkbox'>
+                  <?php echo "<input type='checkbox' name='isLink' id='isLink' value='1' /><span>{$lang->article->isLink}</span>" ?>
+                </label>
+              </span>
+            </div>
+          </td>
         </tr>
+        <tr class='link'>
+          <th><?php echo $lang->article->link;?></th>
+          <td colspan='2'>
+            <div class='required required-wrapper'></div>
+            <?php echo html::input('link', '', "class='form-control' placeholder='{$lang->article->placeholder->link}'");?>
+          </td>
+        </tr>
+        <tbody class='articleInfo'>
         <tr>
           <th><?php echo $lang->article->alias;?></th>
           <td colspan='2'>
             <div class='input-group'>
               <?php if($type == 'page'):?>
-              <span class='input-group-addon'>http://<?php echo $this->server->http_host . $config->webRoot?>page/</span>
+              <span class='input-group-addon'>http://<?php echo $this->server->http_host . $config->webRoot;?>page/</span>
               <?php else:?>
-              <span class='input-group-addon'>http://<?php echo $this->server->http_host . $config->webRoot . $type?>/id_</span>
+              <span class='input-group-addon'>http://<?php echo $this->server->http_host . $config->webRoot . $type;?>/id_</span>
               <?php endif;?>
               <?php echo html::input('alias', '', "class='form-control' placeholder='{$lang->alias}'");?>
-              <span class="input-group-addon">.html</span>
+              <span class="input-group-addon w-70px">.html</span>
             </div>
           </td>
         </tr>
@@ -77,6 +96,8 @@
           <th><?php echo $lang->article->summary;?></th>
           <td colspan='2'><?php echo html::textarea('summary', '', "rows='2' class='form-control'");?></td>
         </tr>
+        </tbody>
+        <tbody class='articleInfo'>
         <tr>
           <th><?php echo $lang->article->content;?></th>
           <td colspan='2'><?php echo html::textarea('content', '', "rows='10' class='form-control'");?></td>
@@ -89,12 +110,13 @@
               <span class='add-on'><button class="btn btn-default" type="button"><i class="icon-calendar"></i></button></span>
             </div>
           </td>
-          <td><span class="help-inline"><?php echo $lang->article->note->addedDate;?></span></td>
+          <td><span class="help-inline"><?php echo $lang->article->placeholder->addedDate;?></span></td>
         </tr>
         <tr>
           <th><?php echo $lang->article->status;?></th>
           <td><?php echo html::radio('status', $lang->article->statusList, 'normal');?></td>
         </tr>
+        </tbody>
         <tr>
           <td></td>
           <td colspan='2'><?php echo html::submitButton();?></td>

@@ -2,8 +2,8 @@
 /**
  * The control file of user module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     user
  * @version     $Id$
@@ -18,6 +18,20 @@ class user extends control
      * @access private
      */
     private $referer;
+
+    /**
+     * The construct function fix sina and qq menu.
+     * 
+     * @access public
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        if(empty($this->config->oauth->sina)) unset($this->lang->user->menu->sina);
+        if(empty($this->config->oauth->qq))   unset($this->lang->user->menu->qq);
+        if(!($this->loadModel('wechat')->getList())) unset($this->lang->user->menu->wechat);
+    }
 
     /**
      * Register a user. 
@@ -75,7 +89,7 @@ class user extends control
         /* If the user logon already, goto the pre page. */
         if($this->user->isLogon())
         {
-            if($this->referer and strpos($loginLink . $denyLink . $regLink, $this->referer) !== false) $this->locate($this->referer);
+            if($this->referer and strpos($loginLink . $denyLink . $regLink, $this->referer) === false) $this->locate($this->referer);
             $this->locate($this->createLink($this->config->default->module));
             exit;
         }
@@ -191,26 +205,6 @@ class user extends control
 
         $this->display();
     }
-	
-	/**
-	* List articles of one user.
-	* 
-	* @access public
-	* @return void
-	*/
-	public function article($pageID = 1)
-	{
-		if($this->app->user->account == 'guest') $this->locate(inlink('login'));
-
-		/* Load the pager. */
-		$this->app->loadClass('pager', $static = true);
-		$pager = new pager(0, $this->config->user->recPerPage->article, $pageID);
-
-		$this->view->articles = $this->loadModel('article')->getByUser($this->app->user->account, $pager);
-		$this->view->pager   = $pager;
-
-		$this->display();
-	}
 
     /**
      * List replies of one user.
@@ -310,22 +304,22 @@ class user extends control
      */
     public function admin()
     {
-        if(empty($this->config->oauth->sina)) unset($this->lang->user->menu->weibo);
-        if(empty($this->config->oauth->qq))   unset($this->lang->user->menu->qq);
-
         $get = fixer::input('get')
             ->setDefault('recTotal', 0)
             ->setDefault('recPerPage', 10)
             ->setDefault('pageID', 1)
+            ->setDefault('user', '')
+            ->setDefault('provider', '')
+            ->setDefault('admin', '')
             ->get();
+
         $this->app->loadClass('pager', $static = true);
         $pager = new pager($get->recTotal, $get->recPerPage, $get->pageID);
 
-        $users = $this->user->getList($pager);
+        $users = $this->user->getList($pager, $get->user, $get->provider, $get->admin);
         
         $this->view->users = $users;
         $this->view->pager = $pager;
-
         $this->view->title = $this->lang->user->list;
         $this->display();
     }
@@ -422,7 +416,9 @@ class user extends control
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess));
         }
 
-        $this->view->user = $this->user->getByAccount($this->app->user->account);
+        $this->view->title      = "<i class='icon-key'></i> " . $this->lang->user->changePassword;
+        $this->view->modalWidth = 500; 
+        $this->view->user       = $this->user->getByAccount($this->app->user->account);
         $this->display();
     }
 
@@ -539,13 +535,17 @@ class user extends control
         /* Step3: Try to get user by the open id, if got, login him. */
         $user = $this->user->getUserByOpenID($provider, $openID);
         $this->session->set('random', md5(time() . mt_rand()));
-        if($user and $this->user->login($user->account, md5($user->password . $this->session->random)))
+        if($user)
         {
-            if($referer) $this->locate(helper::safe64Decode($referer));
+            if($this->user->login($user->account, md5($user->password . $this->session->random)))
+            {
+                if($referer) $this->locate(helper::safe64Decode($referer));
 
-            /* No referer, go to the user control panel. */
-            $default = $this->config->user->default;
-            $this->locate($this->createLink($default->module, $default->method));
+                /* No referer, go to the user control panel. */
+                $default = $this->config->user->default;
+                $this->locate($this->createLink($default->module, $default->method));
+            }
+            exit;
         }
 
         /* Step4.1: if the provider is sina, display the register or bind page. */
@@ -553,6 +553,7 @@ class user extends control
         {
             $this->session->set('oauthOpenID', $openID);                     // Save the openID to session.
             if($this->get->referer != false) $this->setReferer($referer);    // Set the referer.
+            $this->config->oauth->sina = json_encode($this->config->oauth->sina);
 
             $this->view->title   = $this->lang->user->login->common;
             $this->view->referer = $referer;

@@ -2,8 +2,8 @@
 /**
  * The admin view file of article of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     article
  * @version     $Id$
@@ -36,8 +36,8 @@
         <th class='text-center w-200px'><?php commonModel::printOrderLink('category', $orderBy, $vars, $lang->article->category);?></th>
         <?php endif;?>
         <th class='text-center w-160px'><?php commonModel::printOrderLink('addedDate', $orderBy, $vars, $lang->article->addedDate);?></th>
-        <th class='text-center w-60px'><?php commonModel::printOrderLink('views', $orderBy, $vars, $lang->article->views);?></th>
-        <th class='text-center w-150px'><?php echo $lang->actions;?></th>
+        <th class='text-center w-70px'><?php commonModel::printOrderLink('views', $orderBy, $vars, $lang->article->views);?></th>
+        <th class='text-center w-220px'><?php echo $lang->actions;?></th>
       </tr>
     </thead>
     <tbody>
@@ -56,9 +56,12 @@
         <td class='text-center'>
           <?php
           echo html::a($this->createLink('article', 'edit', "articleID=$article->id&type=$article->type"), $lang->edit);
-          echo html::a($this->createLink('file', 'browse', "objectType=$article->type&objectID=$article->id"), $lang->article->files, "data-toggle='modal'");
-          echo html::a($this->createLink('article', 'delete', "articleID=$article->id"), $lang->delete, 'class="deleter"');
+          echo html::a($this->createLink('file', 'browse', "objectType=$article->type&objectID=$article->id&isImage=0"), $lang->article->files, "data-toggle='modal'");
+          echo html::a($this->createLink('file', 'browse', "objectType=$article->type&objectID=$article->id&isImage=1"), $lang->article->images, "data-toggle='modal'");
           echo html::a($this->article->createPreviewLink($article->id), $lang->preview, "target='_blank'");
+          echo html::a($this->createLink('article', 'delete', "articleID=$article->id"), $lang->delete, 'class="deleter"');
+          echo html::a($this->createLink('article', 'setcss', "articleID=$article->id"), $lang->article->css, "data-toggle='modal'");
+          echo html::a($this->createLink('article', 'setjs', "articleID=$article->id"), $lang->article->js, "data-toggle='modal'");
           ?>
         </td>
       </tr>

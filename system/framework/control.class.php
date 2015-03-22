@@ -159,6 +159,7 @@ class control
 
         $this->setModuleName($moduleName);
         $this->setMethodName($methodName);
+        $this->setTplRoot();
 
         /* Load the model file auto. */
         $this->loadModel();
@@ -197,6 +198,17 @@ class control
     private function setMethodName($methodName = '')
     {
         $this->methodName = $methodName ? strtolower($methodName) : $this->app->getMethodName();
+    }
+
+    /**
+     * Set TPL_ROOT used in template files.
+     * 
+     * @access public
+     * @return void
+     */
+    public function setTplRoot()
+    {
+        if(!defined('TPL_ROOT')) define('TPL_ROOT', $this->app->getTplRoot() . $this->config->template->name . DS . 'view' . DS);
     }
 
     /**
@@ -245,7 +257,7 @@ class control
     }
 
     //-------------------- View related methods --------------------//
-    
+   
     /**
      * Set the view file, thus can use fetch other module's page.
      * 
@@ -254,16 +266,25 @@ class control
      * @access private
      * @return string  the view file
      */
-    private function setViewFile($moduleName, $methodName)
+    public function setViewFile($moduleName, $methodName)
     {
         $moduleName = strtolower(trim($moduleName));
         $methodName = strtolower(trim($methodName));
 
-        $modulePath  = $this->app->getModulePath($moduleName);
+        $modulePath = $this->app->getModulePath($moduleName);
         $viewExtPath = $this->app->getModuleExtPath($moduleName, 'view');
 
-        /* The main view file, extension view file and hook file. */
-        $mainViewFile = $modulePath . 'view' . DS . $methodName . '.' . $this->viewType . '.php';
+        if((RUN_MODE != 'front') or (strpos($modulePath, 'module' . DS . 'ext' . DS) !== false))
+        {
+            /* If not in front mode or is ext module, view file is in modeule path. */
+            $mainViewFile = $modulePath . 'view' . DS . $methodName . '.' . $this->viewType . '.php';
+        }
+        else
+        {
+            /* If in front mode, view file is in www/template path. */
+            $mainViewFile = TPL_ROOT . $moduleName . DS . "{$methodName}.{$this->viewType}.php";
+        }
+
         /* Extension view file. */
         $commonExtViewFile = $viewExtPath['common'] . $methodName . ".{$this->viewType}.php";
         $siteExtViewFile   = $viewExtPath['site'] . $methodName . ".{$this->viewType}.php";
@@ -274,7 +295,7 @@ class control
         /* Extension hook file. */
         $commonExtHookFiles = glob($viewExtPath['common'] . $methodName . "*.{$this->viewType}.hook.php");
         $siteExtHookFiles   = glob($viewExtPath['site'] . $methodName . "*.{$this->viewType}.hook.php");
-        $extHookFiles       = array_merge($commonExtHookFiles, $siteExtHookFiles);
+        $extHookFiles       = array_merge((array) $commonExtHookFiles, (array) $siteExtHookFiles);
         if(!empty($extHookFiles)) return array('viewFile' => $viewFile, 'hookFiles' => $extHookFiles);
 
         return $viewFile;
@@ -289,7 +310,7 @@ class control
      */
     public function getExtViewFile($viewFile)
     {
-        $extPath     = dirname(dirname(realpath($viewFile))) . "/ext/_{$this->config->site->code}/view/";
+        $extPath     = dirname(realpath($viewFile)) . "/ext/_{$this->config->site->code}/";
         $extViewFile = $extPath . basename($viewFile);
 
         if(file_exists($extViewFile))
@@ -297,7 +318,8 @@ class control
             helper::cd($extPath);
             return $extViewFile;
         }
-        $extPath     = dirname(dirname(realpath($viewFile))) . "/ext/view/";
+
+        $extPath = RUN_MODE == 'front' ? dirname(realpath($viewFile)) . '/ext/' : dirname(dirname(realpath($viewFile))) . '/ext/view/';
         $extViewFile = $extPath . basename($viewFile);
 
         if(file_exists($extViewFile))
@@ -321,24 +343,38 @@ class control
     {
         $moduleName = strtolower(trim($moduleName));
         $methodName = strtolower(trim($methodName));
+
         $modulePath = $this->app->getModulePath($moduleName);
+
         $cssExtPath = $this->app->getModuleExtPath($moduleName, 'css') ;
 
         $css = '';
-        $mainCssFile   = $modulePath . 'css' . DS . 'common.css';
-        $methodCssFile = $modulePath . 'css' . DS . $methodName . '.css';
-        if(file_exists($mainCssFile))   $css .= file_get_contents($mainCssFile);
-        if(is_file($methodCssFile))     $css .= file_get_contents($methodCssFile);
-
-        foreach(glob($cssExtPath['common'] . $methodName . DS . '*.css') as $cssFile)
+        if((RUN_MODE != 'front') or (strpos($modulePath, 'module' . DS . 'ext') !== false))
         {
-            $css .= file_get_contents($cssFile);
+            $mainCssFile   = $modulePath . 'css' . DS . 'common.css';
+            $methodCssFile = $modulePath . 'css' . DS . $methodName . '.css';
+
+            if(file_exists($mainCssFile))   $css .= file_get_contents($mainCssFile);
+            if(file_exists($methodCssFile)) $css .= file_get_contents($methodCssFile);
+        }
+        else
+        {
+            $defaultMainCssFile   = TPL_ROOT . $moduleName . DS . 'css' . DS . "common.css";
+            $defaultMethodCssFile = TPL_ROOT . $moduleName . DS . 'css' . DS . "{$methodName}.css";
+            $themeMainCssFile     = TPL_ROOT . $moduleName . DS . 'css' . DS . "common.{$this->config->site->theme}.css";
+            $themeMethodCssFile   = TPL_ROOT . $moduleName . DS . 'css' . DS . "{$methodName}.{$this->config->site->theme}.css";
+
+            if(file_exists($defaultMainCssFile))   $css .= file_get_contents($defaultMainCssFile);
+            if(file_exists($defaultMethodCssFile)) $css .= file_get_contents($defaultMethodCssFile);
+            if(file_exists($themeMainCssFile))     $css .= file_get_contents($themeMainCssFile);
+            if(file_exists($themeMethodCssFile))   $css .= file_get_contents($themeMethodCssFile);
         }
 
-        foreach(glob($cssExtPath['site'] . $methodName . DS . '*.css') as $cssFile)
-        {
-            $css .= file_get_contents($cssFile);
-        }
+        $commonExtCssFiles = glob($cssExtPath['common'] . $methodName . DS . '*.css');
+        foreach($commonExtCssFiles as $cssFile) $css .= file_get_contents($cssFile);
+
+        $methodExtCssFiles = glob($cssExtPath['site'] . $methodName . DS . '*.css');
+        foreach($methodExtCssFiles as $cssFile) $css .= file_get_contents($cssFile);
 
         return $css;
     }
@@ -355,23 +391,42 @@ class control
     {
         $moduleName = strtolower(trim($moduleName));
         $methodName = strtolower(trim($methodName));
+        
         $modulePath = $this->app->getModulePath($moduleName);
         $jsExtPath  = $this->app->getModuleExtPath($moduleName, 'js');
 
         $js = '';
-        $mainJsFile   = $modulePath . 'js' . DS . 'common.js';
-        $methodJsFile = $modulePath . 'js' . DS . $methodName . '.js';
-        if(file_exists($mainJsFile))   $js .= file_get_contents($mainJsFile);
-        if(is_file($methodJsFile))     $js .= file_get_contents($methodJsFile);
-        
-        foreach(glob($jsExtPath['common'] . $methodName . DS . '*.js') as $jsFile)
+        if((RUN_MODE !== 'front') or (strpos($modulePath, 'module' . DS . 'ext') !== false))
         {
-            $js .= file_get_contents($jsFile);
+            $mainJsFile   = $modulePath . 'js' . DS . 'common.js';
+            $methodJsFile = $modulePath . 'js' . DS . $methodName . '.js';
+
+            if(file_exists($mainJsFile))   $js .= file_get_contents($mainJsFile);
+            if(file_exists($methodJsFile)) $js .= file_get_contents($methodJsFile);
+        }
+        else
+        {
+            $defaultMainJsFile   = TPL_ROOT . $moduleName . DS . 'js' . DS . "common.js";
+            $defaultMethodJsFile = TPL_ROOT . $moduleName . DS . 'js' . DS . "{$methodName}.js";
+            $themeMainJsFile     = TPL_ROOT . $moduleName . DS . 'js' . DS . "common.{$this->config->site->theme}.js";
+            $themeMethodJsFile   = TPL_ROOT . $moduleName . DS . 'js' . DS . "{$methodName}.{$this->config->site->theme}.js";
+
+            if(file_exists($defaultMainJsFile))   $js .= file_get_contents($defaultMainJsFile);
+            if(file_exists($defaultMethodJsFile)) $js .= file_get_contents($defaultMethodJsFile);
+            if(file_exists($themeMainJsFile))     $js .= file_get_contents($themeMainJsFile);
+            if(file_exists($themeMethodJsFile))   $js .= file_get_contents($themeMethodJsFile);
         }
 
-        foreach(glob($jsExtPath['site'] . $methodName . DS  . '*.js') as $jsFile)
+        $commonExtJsFiles = glob($jsExtPath['common'] . $methodName . DS . '*.js');
+        if(!empty($commonExtJsFiles))
         {
-            $js .= file_get_contents($jsFile);
+            foreach($commonExtJsFiles as $jsFile) $js .= file_get_contents($jsFile);
+        }
+
+        $methodExtJsFiles = glob($jsExtPath['site'] . $methodName . DS  . '*.js');
+        if(!empty($methodExtJsFiles))
+        {
+            foreach($methodExtJsFiles as $jsFile) $js .= file_get_contents($jsFile);
         }
 
         return $js;
@@ -414,15 +469,26 @@ class control
         if(empty($moduleName)) $moduleName = $this->moduleName;
         if(empty($methodName)) $methodName = $this->methodName;
 
-        if($this->viewType == 'json')
-        {
-            $this->parseJSON($moduleName, $methodName);
-        }
-        else
+        if($this->viewType == 'json') return $this->parseJSON($moduleName, $methodName);
+
+        /* If the parser is default or run mode is admin, install, upgrade, call default parser.  */
+        if(RUN_MODE != 'front' or $this->config->template->parser == 'default')
         {
             $this->parseDefault($moduleName, $methodName);
+            return $this->output;
         }
-        return $this->output;
+
+        /* Call the extened parser. */
+        $parserClassName = $this->config->template->parser . 'Parser';
+        $parserClassFile = 'parser.' . $this->config->template->parser . '.class.php';
+        $parserClassFile = dirname(__FILE__) . DS . $parserClassFile;
+        if(!is_file($parserClassFile)) $this->app->triggerError(" The parser file  $parserClassFile not found", __FILE__, __LINE__, $exit = true);
+
+        helper::import($parserClassFile);
+        if(!class_exists($parserClassName)) $this->app->triggerError(" Can not find class : $parserClassName not found in $parserClassFile <br/>", __FILE__, __LINE__, $exit = true);
+
+        $parser = new $parserClassName($this);
+        return $parser->parse($moduleName, $methodName);
     }
 
     /**
@@ -566,7 +632,11 @@ class control
      */
     public function send($data, $type = 'json')
     {
-        if($type == 'json') echo json_encode($data);
+        $data = (array) $data;
+        if($type == 'json')
+        {
+            echo json_encode($data);
+        }
         die(helper::removeUTF8Bom(ob_get_clean()));
     }
 

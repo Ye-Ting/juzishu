@@ -2,8 +2,8 @@
 /**
  * The control file of blog module of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Xiying Guan <guanxiying@xirangit.com>
  * @package     blog
  * @version     $Id$
@@ -21,10 +21,11 @@ class blog extends control
      */
     public function index($categoryID = 0, $pageID = 1)
     {   
+        $category = $this->loadModel('tree')->getByID($categoryID, 'blog');
+
         $this->app->loadClass('pager', $static = true);
         $pager = new pager(0, $this->config->blog->recPerPage, $pageID);
 
-        $category   = $this->loadModel('tree')->getByID($categoryID, 'blog');
         $categoryID = is_numeric($categoryID) ? $categoryID : $category->id;
         $articles   = $this->loadModel('article')->getList('blog', $this->tree->getFamily($categoryID, 'blog'), $orderBy = 'addedDate_desc', $pager);
 
@@ -35,6 +36,8 @@ class blog extends control
  
         if($category)
         {
+            if($category->link) helper::header301($category->link);
+
             $this->view->category = $category;
             $this->view->title    = $category->name;
             $this->view->keywords = trim($category->keywords . ' ' . $this->config->site->keywords);
@@ -57,6 +60,8 @@ class blog extends control
     {
         $article = $this->loadModel('article')->getByID($articleID);
         if(!$article) die($this->fetch('error', 'index'));
+
+        if($article->link) helper::header301($article->link);
 
         /* fetch category for display. */
         $category = array_slice($article->categories, 0, 1);

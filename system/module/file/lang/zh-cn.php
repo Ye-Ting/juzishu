@@ -2,8 +2,8 @@
 /**
  * The file module zh-cn file of chanzhiEPS.
  *
- * @copyright   Copyright 2013-2013 青岛息壤网络信息有限公司 (QingDao XiRang Network Infomation Co,LTD www.xirangit.com)
- * @license     http://api.chanzhi.org/goto.php?item=license
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     file
  * @version     $Id$
@@ -12,6 +12,7 @@
 $lang->file->common     = '附件';
 $lang->file->upload     = '上传附件';
 $lang->file->browse     = '附件列表';
+$lang->file->imageList  = '图片列表';
 $lang->file->download   = '下载附件';
 $lang->file->edit       = '编辑';
 $lang->file->primary    = '封面';
@@ -21,7 +22,7 @@ $lang->file->allow      = '允许';
 $lang->file->toggle     = '切换';
 $lang->file->label      = '标题：';
 $lang->file->lblInfo    = '<i>(类型：%s, 大小：%s, 添加于：%s，下载%s次)</i>';
-$lang->file->limit      = "(<span class='text-danger'>2M以内</span>)";
+$lang->file->limit      = "(<span class='text-danger'>%sM以内</span>)";
 
 $lang->file->id        = '编号';
 $lang->file->title     = '名称';
@@ -43,3 +44,5 @@ $lang->file->errorUnwritable  = '上传目录不可写，无法上传附件。';
 $lang->file->noAccess         = '不允许访问。';
 $lang->file->invalidParameter = '参数无效。';
 $lang->file->unWritable       = '目录不可写或不存在。';
+$lang->file->uploadForbidden  = '附件上传功能已禁用。';
+$lang->file->sizeLimit        = "<p class='text-danger'>附件大小不能大于%sM</p>";

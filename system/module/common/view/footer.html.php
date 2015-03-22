@@ -3,7 +3,6 @@
   </div></div><?php /* end div.page-content then div.page-wrapper in header.html.php */?>
   <footer id='footer' class='clearfix'>
     <div class='wrapper'>
-     <!-- 
       <div id='footNav'>
         <?php
         echo html::a($this->createLink('sitemap', 'index'), "<i class='icon-sitemap'></i> " . $lang->sitemap->common, "class='text-link'");
@@ -11,20 +10,19 @@
         if(empty($this->config->links->index) && !empty($this->config->links->all)) echo '&nbsp;' . html::a($this->createLink('links', 'index'), "<i class='icon-link'></i> " . $this->lang->link);
         ?>
       </div>
-       -->
       <span id='copyright'>
         <?php
         $copyright = empty($config->site->copyright) ? '' : $config->site->copyright . '-';
-        echo "&copy; {$copyright}" . date('Y') . ' ' . $config->company->name . '&nbsp;&nbsp;';
+        $contact   = json_decode($config->company->contact); 
+        $company   = (empty($contact->site) or $contact->site == $this->server->http_host) ? $config->company->name : html::a('http://' . $contact->site, $config->company->name, "target='_blank'");
+        echo "&copy; {$copyright}" . date('Y') . ' ' . $company . '&nbsp;&nbsp;';
         ?>
       </span>
-      <span id='icpInfo'><?php echo $config->site->icp; ?></span>
-      <!-- 
+      <span id='icpInfo'><?php echo $config->site->icpSN; ?></span>
       <div id='powerby'>
         <?php printf($lang->poweredBy, $config->version, k(), $config->version); ?>
       </div>
     </div>
-     -->
   </footer>
    
 <?php
@@ -47,12 +45,5 @@ if($extHookFiles) foreach($extHookFiles as $extHookFile) include $extHookFile;
 </div><?php /* end "div.page-container" in "header.html.php" */ ?>
 <?php include dirname(__FILE__) . '/qrcode.html.php';?>
 <div class='hide'><?php if(RUN_MODE == 'front') $this->loadModel('block')->printRegion($layouts, 'all', 'footer');?></div>
-<div style="display:none">
-<script type="text/javascript">
-var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
-document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F060569b8f4cde705f9c695f2f3f8ea24' type='text/javascript'%3E%3C/script%3E"));
-</script>
-</div>
-
 </body>
 </html>
